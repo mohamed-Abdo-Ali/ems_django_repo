@@ -1,0 +1,108 @@
+# ملفات بيئة Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+pythonenv*
+
+# ملفات بيئة التطوير
+.idea/
+.vscode/
+*.swp
+*.swo
+*.sublime-*
+.DS_Store
+*.code-workspace
+
+# ملفات قاعدة البيانات
+*.sqlite3
+*.db
+*.sql
+/mysql_data/
+
+# ملفات Django
+*.log
+*.pot
+*.pyc
+local_settings.py
+db.sqlite3
+/media/
+/staticfiles/
+
+# ملفات باكيج Python
+*.egg
+*.egg-info
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+lib/
+lib64/
+__pypackages__/
+
+# ملفات الاختبار والكوفيرج
+.coverage
+htmlcov/
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+*.mo
+
+# ملفات أنظمة البناء
+pip-delete-this-directory.txt
+pip-selfcheck.json
+/Pipfile
+/Pipfile.lock
+/poetry.lock
+/requirements/*.txt
+/setup.cfg
+
+# ملفات نظام النسخ الاحتياطي
+*.bak
+*.backup
+*.bkp
+*.old
+*.orig
+*.rej
+*~
+*.dump
+
+# ملفات أنظمة التشغيل
+Thumbs.db
+ehthumbs.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+
+# ملفات Docker
+docker-compose.override.yml
+/.dockerignore
+/docker-data/
+
+# ملفات Node.js (إذا كان هناك React/Vue)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+/.yarn/cache
+/.yarn/unplugged
+/.yarn/build-state.yml
+/.pnp.*
+
+# ملفات الإنتاج
+*.env
+*.env.local
+.env/
+.secrets/
+.env.production
+.env.development
