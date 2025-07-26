@@ -124,7 +124,7 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # لتجميع الملفات الثابتة عند النشر
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  
 
 
 # إعدادات الملفات الوسائط (إذا كنت تستخدم رفع ملفات من المستخدمين)
@@ -132,9 +132,9 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # هذا اذا كان الستاتيك في مجلد واحد فقط في مجلد المشروع اما الان في كل تطبيق الستاتيك الخاصة بة لا داعي للتحديد
-# STATICFILES_DIRS = [
-#     os.path.join(BASE_DIR, 'ems\static'),  # مسار مجلد الملفات الثابتة الخاص بك
-# ]
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'ems\static'),  # مسار مجلد الملفات الثابتة الخاص بك
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
