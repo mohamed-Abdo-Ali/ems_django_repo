@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}القواعد والإرشادات{% endblock %}
+
+{% block content %}
+<div class="min-h-screen py-8">
+    <div class="container mx-auto px-4">
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden max-w-3xl mx-auto">
+            <!-- رأس الصفحة -->
+            <div class="bg-blue-600 py-4 px-6">
+                <h1 class="text-2xl font-bold text-white text-center">القواعد والإرشادات</h1>
+            </div>
+            
+            <!-- محتوى الإرشادات -->
+            <div class="p-6 space-y-6">
+                <div class="space-y-4">
+                    <div class="rule-item text-gray-800">
+                        مدة الاختبار: ساعتان فقط
+                    </div>
+                    
+                    <div class="rule-item text-gray-800">
+                        يجب الضغط على زر البدء لاحتساب الساعتين بشكل كامل
+                    </div>
+                    
+                    <div class="rule-item text-gray-800">
+                        في حال نهاية جميع الأسئلة قبل انتهاء الوقت، يرجى الضغط على زر التسليم لإنهاء الاختبار
+                    </div>
+                    
+                    <div class="rule-item text-gray-800">
+                        الخروج عن نافذة الاختبار قد يؤدي إلى إلغاء الاختبار
+                    </div>
+                    
+                    <div class="rule-item text-gray-800">
+                        يجب إبقاء الهاتف الشخصي خارج قاعة الاختبار
+                    </div>
+                    
+                    <div class="rule-item text-gray-800">
+                        يمنع استخدام الآلات الحاسبة والساعات الذكية أثناء الاختبار
+                    </div>
+                </div>
+                
+                <!-- زر الموافقة -->
+                <div class="pt-4 border-t border-gray-200">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="flex items-center mb-4">
+                            <input 
+                                type="checkbox" 
+                                id="agree" 
+                                name="agree"
+                                required
+                                class="h-5 w-5 text-blue-600 rounded focus:ring-blue-500 border-gray-300">
+                            <label for="agree" class="mr-2 block text-gray-700 font-medium">
+                                أوافق على جميع القواعد والإرشادات المذكورة أعلاه
+                            </label>
+                        </div>
+                        
+                        <div class="flex justify-center">
+                            <button 
+                                type="submit"
+                                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition duration-300">
+                                بدء الاختبار
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const agreeCheckbox = document.getElementById('agree');
+    const submitButton = form.querySelector('button[type="submit"]');
+    
+    // تعطيل الزر إذا لم يتم الموافقة على الشروط
+    submitButton.disabled = !agreeCheckbox.checked;
+    submitButton.classList.toggle('bg-gray-400', !agreeCheckbox.checked);
+    submitButton.classList.toggle('cursor-not-allowed', !agreeCheckbox.checked);
+    submitButton.classList.toggle('hover:bg-blue-700', agreeCheckbox.checked);
+    
+    // تفعيل/تعطيل الزر عند تغيير حالة checkbox
+    agreeCheckbox.addEventListener('change', function() {
+        submitButton.disabled = !this.checked;
+        submitButton.classList.toggle('bg-gray-400', !this.checked);
+        submitButton.classList.toggle('cursor-not-allowed', !this.checked);
+        submitButton.classList.toggle('hover:bg-blue-700', this.checked);
+    });
+});
+</script>
+{% endblock %}

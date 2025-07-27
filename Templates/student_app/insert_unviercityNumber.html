@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load static%}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+        <!-- شعار الجامعة -->
+        <div class="flex justify-center mb-6">
+            <img 
+                src="{% static 'img/tize_unvercity_logo.svg' %}" 
+                alt="شعار الجامعة" 
+                class="h-24 w-24 object-contain">
+        </div>
+        
+        <h1 class="text-2xl font-bold text-center text-blue-800 mb-6">نظام تسجيل الحضور الإلكتروني</h1>
+        
+        <form method="post"  class="space-y-4">
+            {% csrf_token %}
+            
+            {% if error_message %}
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                <strong>خطأ!</strong> {{ error_message }}
+            </div>
+            {% endif %}
+            
+            <div>
+                <label for="student_id" class="block text-gray-700 mb-2">رقم البطاقة الجامعية</label>
+                <input 
+                    type="text" 
+                    id="student_id" 
+                    name="student_id"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="أدخل رقم البطاقة الجامعية"
+                    required
+                    pattern="[0-9]+"
+                    title="يجب أن يحتوي على أرقام فقط">
+            </div>
+            
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <input 
+                        type="checkbox" 
+                        id="attendance" 
+                        name="attendance"
+                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded ml-2">
+                    <label for="attendance" class="text-gray-700">تسجيل الحضور</label>
+                </div>
+                
+                <button 
+                    type="submit" 
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-md transition duration-300">
+                    التالي
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load static%}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+        <!-- شعار الجامعة -->
+        <div class="flex justify-center mb-6">
+            <img 
+                src="{% static 'img/tize_unvercity_logo.svg' %}" 
+                alt="شعار الجامعة" 
+                class="h-24 w-24 object-contain">
+        </div>
+        
+        <h1 class="text-2xl font-bold text-center text-blue-800 mb-6">تسجيل الدخول</h1>
+        
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                <strong>خطأ!</strong> يرجى إدخال بيانات صحيحة.
+            </div>
+            {% endif %}
+            
+            <div>
+                <label for="phone" class="block text-gray-700 mb-2">رقم الهاتف</label>
+                <input 
+                    type="tel" 
+                    id="phone" 
+                    name="phone"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-right dir-rtl"
+                    placeholder="أدخل رقم الهاتف"
+                    required
+                    pattern="[0-9]{10}"
+                    style="direction: rtl; text-align: right;">
+                <p class="text-xs text-gray-500 mt-1">يجب أن يتكون من 10 أرقام</p>
+            </div>
+            
+            <div>
+                <label for="email" class="block text-gray-700 mb-2">البريد الإلكتروني</label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    name="email"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="أدخل البريد الإلكتروني"
+                    required>
+            </div>
+            
+            <div class="pt-4 flex justify-center">
+                <button 
+                    type="submit" 
+                    class="w-1/2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">
+                    التالي
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

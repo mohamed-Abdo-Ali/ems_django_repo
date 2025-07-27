@@ -1,3 +1,128 @@
-<nav>
-    <h1>the wibsite navbar</h1>
+{% load static %}
+<!-- templates/includes/navbar.html -->
+<nav class="fixed w-full top-0 left-0 z-50 bg-white shadow-md">
+    <div class="w-full mx-auto">
+        <!-- العناصر الرئيسية -->
+        <div class="flex justify-between items-center h-16 px-4 sm:px-6 lg:px-8">
+            
+            <!-- الشعار والاسم -->
+            <div class="flex items-center">
+                <a href="#" class="flex items-center">
+                    <img src="{% static 'img/tize_unvercity_logo.svg' %}" alt="شعار الجامعة" class="h-10 w-auto">
+                    <span class="mr-3 text-xl font-bold text-blue-800 hidden md:block">نظام الامتحانات</span>
+                </a>
+            </div>
+
+            <!-- القائمة الرئيسية (لأجهزة الكمبيوتر) -->
+            <div class="hidden md:flex md:items-center md:space-x-6 space-x-reverse">
+                <a href="#" class="nav-link">
+                    الرئيسية
+                </a>
+                <a href="#" class="nav-link">
+                    الامتحانات
+                </a>
+                <a href="#" class="nav-link">
+                    النتائج
+                </a>
+                <a href="#" class="nav-link">
+                    التعليمات
+                </a>
+            </div>
+
+            <!-- قسم المستخدم -->
+            <div class="flex items-center">
+                {% if user.is_authenticated %}
+                <div class="hidden md:flex items-center space-x-3 space-x-reverse">
+                    <span class="text-gray-700 text-sm">الاسم </span>
+                    <img src="#" alt="صورة المستخدم" class="h-8 w-8 rounded-full border-2 border-blue-500">
+                </div>
+                {% else %}
+                <a href="#" class="login-btn">
+                    تسجيل الدخول
+                </a>
+                {% endif %}
+
+                <!-- زر القائمة المنسدلة (للجوال) -->
+                <button id="mobile-menu-button" class="md:hidden p-2 text-gray-700 hover:text-blue-600 focus:outline-none">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- القائمة المنسدلة (للجوال) -->
+    <div id="mobile-menu" class="hidden md:hidden w-full bg-white shadow-lg">
+        <div class="px-2 pt-2 pb-3 space-y-1">
+            <a href="#" class="mobile-nav-link">
+                الرئيسية
+            </a>
+            <a href="#" class="mobile-nav-link">
+                الامتحانات
+            </a>
+            <a href="#" class="mobile-nav-link">
+                النتائج
+            </a>
+            <a href="#" class="mobile-nav-link">
+                التعليمات
+            </a>
+            
+            {% if user.is_authenticated %}
+            <div class="pt-4 border-t border-gray-200">
+                <div class="flex items-center px-3 py-2">
+                    <img src="#" alt="صورة المستخدم" class="h-8 w-8 rounded-full border-2 border-blue-500">
+                    <span class="mr-3 text-gray-700">الاسم </span>
+                </div>
+                <a href="#" class="block px-3 py-2 text-gray-700 hover:bg-gray-100">
+                    تسجيل الخروج
+                </a>
+            </div>
+            {% else %}
+            <a href="#" class="block w-full text-center bg-blue-600 text-white px-3 py-2 rounded mx-2">
+                تسجيل الدخول
+            </a>
+            {% endif %}
+        </div>
+    </div>
 </nav>
+
+<style>
+    .nav-link {
+        @apply text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition duration-300;
+    }
+    .mobile-nav-link {
+        @apply block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md text-base font-medium;
+    }
+    .login-btn {
+        @apply bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-300;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    
+    mobileMenuButton.addEventListener('click', function() {
+        const isExpanded = mobileMenuButton.getAttribute('aria-expanded') === 'true';
+        mobileMenuButton.setAttribute('aria-expanded', !isExpanded);
+        mobileMenu.classList.toggle('hidden');
+        
+        // تغيير الأيقونة
+        if (!isExpanded) {
+            mobileMenuButton.innerHTML = `
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            `;
+        } else {
+            mobileMenuButton.innerHTML = `
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            `;
+        }
+    });
+});
+</script>
