@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}تسجيل الخروج{% endblock title%}
+
+
+{% block content %}
+<div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-2xl my-10">
+    <div class="p-8">
+        <div class="text-center mb-6">
+            <h1 class="text-2xl font-bold text-blue-600">تم تسجيل الخروج بنجاح</h1>
+            <div class="mt-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-green-500 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <p class="text-gray-600 mt-4">لقد تم تسجيل خروجك من النظام بأمان.</p>
+        </div>
+        
+        <div class="mt-8 text-center">
+            <a href="{% url 'authentcat_app:sign_in' %}" 
+               class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+               </svg>
+               تسجيل الدخول مرة أخرى
+            </a>        
+        </div>
+    </div>
+</div>
+{% endblock content%}
+

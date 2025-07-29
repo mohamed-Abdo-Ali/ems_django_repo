@@ -1,61 +1,191 @@
 {% extends 'base.html' %}
-{% load static%}
+{% load static %}
+
+{% block title %}إدخال البيانات - نظام الامتحانات الإلكترونية{% endblock %}
+
+{% block extra_css %}
+<style>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-15px); }
+    }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    .animate-form {
+        animation: fadeIn 0.6s ease-out forwards;
+    }
+    input[type="tel"] {
+        direction: rtl;
+        text-align: right;
+    }
+    .input-error {
+        animation: pulse 1.5s ease-in-out infinite;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center">
-    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-gray-100 p-4">
+    <!-- العناصر الخلفية المتحركة -->
+    <div class="absolute top-1/4 left-1/4 w-32 h-32 bg-blue-200 rounded-full opacity-20 animate-[float_6s_ease-in-out_infinite]"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-40 h-40 bg-indigo-200 rounded-full opacity-20 animate-[float_8s_ease-in-out_infinite]"></div>
+    
+    <div class="bg-white p-8 rounded-xl shadow-xl w-full max-w-md z-10 backdrop-blur-sm bg-opacity-90 animate-form">
         <!-- شعار الجامعة -->
-        <div class="flex justify-center mb-6">
+        <div class="flex justify-center mb-6 transform transition-all duration-300 hover:scale-105">
             <img 
                 src="{% static 'img/tize_unvercity_logo.svg' %}" 
                 alt="شعار الجامعة" 
-                class="h-24 w-24 object-contain">
+                class="h-24 w-24 object-contain drop-shadow-md">
         </div>
         
-        <h1 class="text-2xl font-bold text-center text-blue-800 mb-6">تسجيل الدخول</h1>
+        {% comment %} <h1 class="text-2xl font-bold text-center text-blue-800 mb-6 animate-[fadeIn_0.8s_ease-out]">إدخال البيانات</h1> {% endcomment %}
         
-        <form method="post" class="space-y-4">
+        <form method="post" class="space-y-5" action="{% url 'student_app:insert_unviercityNumber' %}" id="dataForm">
             {% csrf_token %}
             
             {% if form.errors %}
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative animate-[fadeIn_0.5s_ease-out] mb-4" role="alert">
                 <strong>خطأ!</strong> يرجى إدخال بيانات صحيحة.
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                        <p class="mt-1 text-sm">{{ error }}</p>
+                    {% endfor %}
+                {% endfor %}
             </div>
             {% endif %}
             
-            <div>
-                <label for="phone" class="block text-gray-700 mb-2">رقم الهاتف</label>
-                <input 
-                    type="tel" 
-                    id="phone" 
-                    name="phone"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-right dir-rtl"
-                    placeholder="أدخل رقم الهاتف"
-                    required
-                    pattern="[0-9]{10}"
-                    style="direction: rtl; text-align: right;">
-                <p class="text-xs text-gray-500 mt-1">يجب أن يتكون من 10 أرقام</p>
+            <!-- حقل رقم الهاتف -->
+            <div class="animate-[fadeIn_0.6s_ease-out_0.2s_backwards]">
+                <label for="phone" class="block text-gray-700 mb-2 font-medium flex items-center">
+                    رقم الهاتف
+                </label>
+                <div class="relative group">
+                    <input 
+                        type="tel" 
+                        id="phone" 
+                        name="phone"
+                        class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 group-hover:shadow-sm"
+                        placeholder="5XXXXXXXX"
+                        required
+                        pattern="[0-9]{10}"
+                        maxlength="10"
+                        inputmode="numeric">
+                    <div class="absolute inset-0 border-2 border-transparent group-hover:border-blue-200 rounded-lg pointer-events-none transition-all duration-300"></div>
+                    <div class="absolute left-3 top-3 text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                        </svg>
+                    </div>
+                    <div id="phoneValidIcon" class="absolute right-3 top-3 hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-1 animate-[fadeIn_0.6s_ease-out]">يجب أن يتكون من 10 أرقام</p>
             </div>
             
-            <div>
-                <label for="email" class="block text-gray-700 mb-2">البريد الإلكتروني</label>
-                <input 
-                    type="email" 
-                    id="email" 
-                    name="email"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="أدخل البريد الإلكتروني"
-                    required>
+            <!-- حقل البريد الإلكتروني -->
+            <div class="animate-[fadeIn_0.6s_ease-out_0.3s_backwards]">
+                <label for="email" class="block text-gray-700 mb-2 font-medium flex items-center">
+                    البريد الإلكتروني
+                </label>
+                <div class="relative group">
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email"
+                        class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 group-hover:shadow-sm"
+                        placeholder="example@domain.com"
+                        required>
+                    <div class="absolute inset-0 border-2 border-transparent group-hover:border-blue-200 rounded-lg pointer-events-none transition-all duration-300"></div>
+                    <div class="absolute left-3 top-3 text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <div id="emailValidIcon" class="absolute right-3 top-3 hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                </div>
             </div>
             
-            <div class="pt-4 flex justify-center">
+            <!-- زر التالي -->
+            <div class="pt-2 animate-[fadeIn_0.6s_ease-out_0.4s_backwards]">
                 <button 
                     type="submit" 
-                    class="w-1/2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">
-                    التالي
+                    id="submitBtn"
+                    class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-[1.02] active:scale-95 shadow-md hover:shadow-lg flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed">
+                    <span id="btnText">التالي</span>
+                    <svg id="btnSpinner" class="h-5 w-5 mr-2 hidden animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <svg id="btnIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
                 </button>
             </div>
         </form>
     </div>
 </div>
+
+<script>
+// التحقق من صحة رقم الهاتف أثناء الكتابة
+const phoneInput = document.getElementById('phone');
+const phoneValidIcon = document.getElementById('phoneValidIcon');
+const emailInput = document.getElementById('email');
+const emailValidIcon = document.getElementById('emailValidIcon');
+const submitBtn = document.getElementById('submitBtn');
+const btnText = document.getElementById('btnText');
+const btnSpinner = document.getElementById('btnSpinner');
+const btnIcon = document.getElementById('btnIcon');
+
+phoneInput.addEventListener('input', function(e) {
+    const phonePattern = /^[0-9]{0,10}$/;
+    
+    if (!phonePattern.test(phoneInput.value)) {
+        phoneInput.value = phoneInput.value.slice(0, -1);
+    }
+    
+    if (phoneInput.value.length === 10) {
+        phoneInput.classList.add('border-green-500', 'focus:ring-green-500', 'focus:border-green-500');
+        phoneInput.classList.remove('border-red-500', 'focus:ring-red-500', 'focus:border-red-500');
+        phoneValidIcon.classList.remove('hidden');
+    } else {
+        phoneInput.classList.add('border-red-500', 'focus:ring-red-500', 'focus:border-red-500');
+        phoneInput.classList.remove('border-green-500', 'focus:ring-green-500', 'focus:border-green-500');
+        phoneValidIcon.classList.add('hidden');
+    }
+    checkFormValidity();
+});
+
+// التحقق من صحة البريد الإلكتروني أثناء الكتابة
+emailInput.addEventListener('input', function(e) {
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (emailPattern.test(emailInput.value)) {
+        emailInput.classList.add('border-green-500', 'focus:ring-green-500', 'focus:border-green-500');
+        emailInput.classList.remove('border-red-500', 'focus:ring-red-500', 'focus:border-red-500');
+        emailValidIcon.classList.remove('hidden');
+    } else {
+        emailInput.classList.add('border-red-500', 'focus:ring-red-500', 'focus:border-red-500');
+        emailInput.classList.remove('border-green-500', 'focus:ring-green-500', 'focus:border-green-500');
+        emailValidIcon.classList.add('hidden');
+    }
+    checkFormValidity();
+});
+
+
+
+</script>
 {% endblock %}

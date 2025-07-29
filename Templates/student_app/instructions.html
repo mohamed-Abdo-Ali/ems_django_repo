@@ -41,7 +41,7 @@
                 
                 <!-- زر الموافقة -->
                 <div class="pt-4 border-t border-gray-200">
-                    <form method="post">
+                    <form method="post" action="{% url 'student_app:student_exam' %}"d>
                         {% csrf_token %}
                         <div class="flex items-center mb-4">
                             <input 
@@ -59,7 +59,7 @@
                             <button 
                                 type="submit"
                                 class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition duration-300">
-                                بدء الاختبار
+                                بداء الاختبار
                             </button>
                         </div>
                     </form>

@@ -34,7 +34,7 @@
                 {% if user.is_authenticated %}
                 <div class="hidden md:flex items-center space-x-3 space-x-reverse">
                     <span class="text-gray-700 text-sm">الاسم </span>
-                    <img src="#" alt="صورة المستخدم" class="h-8 w-8 rounded-full border-2 border-blue-500">
+                    <img src="{% static 'img/Mohammed.jpg' %}" alt="صورة المستخدم" class="h-8 w-8 rounded-full border-2 border-blue-500">
                 </div>
                 {% else %}
                 <a href="#" class="login-btn">

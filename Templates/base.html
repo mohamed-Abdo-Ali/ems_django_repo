@@ -1,16 +1,18 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}نظام الامتحانات الإلكترونية{% endblock %}</title>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{% block title %}نظام الامتحانات الإلكترونية{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-    {% load static %}
+    
     <style>
         body {
+            background-color: #F3F4F6;
             font-family: 'Tajawal', sans-serif;
-             padding-top: 64px; /* يتناسب مع ارتفاع الـ Navbar */
+            {% comment %} padding-top: 10px; /* يتناسب مع ارتفاع الـ Navbar */ {% endcomment %}
             display: flex;
             flex-direction: column;
             min-height: 100vh;
@@ -33,20 +35,28 @@
         .transition-all {
             transition: all 0.3s ease;
         }
+
+
+        
     </style>
-    {% block extra_css %}{% endblock %}
+    {% block extra_css %}{% endblock extra_css%}
 </head>
 <body class="bg-gray-100">
 
-    {% include "includes/navbar.html" %} 
+    {% comment %} {% block navbar_block %}
+        {% include "includes/navbar.html" %} 
+    {% endblock navbar_block %} {% endcomment %}
     
-    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
+    <main>
+    <!-- <main class="container mx-auto px-114 sm:px-6 lg:px-8 py-4"> -->
         {% block content %}
         <!-- المحتوى الرئيسي -->
         {% endblock %}
     </main>
-    
-    {% include "includes/footer.html" %}
+
+    {% comment %} {% block footer_block %}
+        {% include "includes/footer.html" %} 
+    {% endblock footer_block %} {% endcomment %}
 
     {% block extra_js %}{% endblock %}
 </body>

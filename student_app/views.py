@@ -9,3 +9,9 @@ def insert_unviercityNumber(request):
 
 def instructions(request):
     return render(request, 'student_app/instructions.html')
+
+def student_exam(request):
+    return render(request, 'student_app/student_exam.html')
+
+def exam_sucss(request):
+    return render(request, 'student_app/exam_sucss.html')

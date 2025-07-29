@@ -1,0 +1,423 @@
+{% extends "base.html" %}
+
+{% load static %} 
+
+{% block title %}امتحان الطالب{%endblock title%}
+
+{% block extra_css %}
+<style>
+  .question-card {
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  }
+  .question-card:hover {
+      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+  }
+  .option-item {
+      transition: all 0.2s ease;
+  }
+  .option-item:hover {
+      transform: translateX(-5px);
+      background-color: #f8fafc;
+  }
+  .option-item input:checked + label {
+      background-color: #3b82f6;
+      color: white;
+  }
+  .timer {
+      font-family: 'Tajawal', monospace;
+  }
+  .progress-bar {
+      height: 6px;
+      transition: width 0.5s ease;
+  }
+  .question-nav {
+      position: sticky;
+      top: 6rem;
+  }
+  .question-dot {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+  }
+  .question-dot.unvisited {
+      background-color: #ef4444;
+      color: white;
+  }
+  .question-dot.visited {
+      background-color: #10b981;
+      color: white;
+  }
+  .question-dot.current {
+      border: 2px solid #3b82f6;
+      transform: scale(1.1);
+  }
+  @media (max-width: 1024px) {
+      .question-nav {
+          position: fixed;
+          bottom: 1rem;
+          right: 1rem;
+          top: auto;
+          z-index: 50;
+      }
+      .question-dots-container {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+          justify-content: center;
+          background-color: white;
+          padding: 0.5rem;
+          border-radius: 0.5rem;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .question-box {
+            transition: all 0.3s ease-in-out;
+        }
+        .question-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        .question-box.selected {
+            background-color: #10B981; /* أخضر */
+        }
+  }
+</style>
+{% endblock extra_css%}
+
+{% block content %}
+<div
+  class="flex flex-col lg:flex-row gap-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4"
+>
+
+
+  <!-- محتوى الامتحان الرئيسي -->
+  <div class="flex-1">
+    <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+
+<!-- رأس صفحة الامتحان -->
+<div class="bg-blue-600 text-white p-4"> <!-- تغيير p-199 إلى p-4 -->
+  <div class="bg-blue-600 text-white p-6 flex justify-between items-stretch"> <!-- تغيير items-center إلى items-stretch -->
+    <!-- البوكس الأيمن - نص -->
+    <div class="text-center w-1/4 px-4 font-tajawal flex flex-col justify-center">
+      <p class="text-2xl font-semibold mb-2">الجمهورية اليمنية</p>
+      <p class="text-2xl mb-1">وزارة التربية و التعليم</p>
+      <p class="text-2xl mb-1">جامعة تعز فرع التربة</p>
+      <p class="text-2xl">كلية الحاسبات و تقنية المعلومات</p>
+    </div>
+
+    <!-- البوكس الأوسط - صورة ونص -->
+    <div class="flex flex-col items-center w-1/4 px-4 self-center"> <!-- إضافة self-center -->
+      <img
+        src="{% static 'img/tize_unvercity_logo.svg' %}"
+        alt="شعار الجامعة"
+        class="h-32 w-32 object-contain mb-2" 
+      />
+      <p class="text-xl mb-1">2025</p> <!-- تصغير حجم الخط -->
+      <p class="text-xl">أجب مستعيناً بالله</p> <!-- تصغير حجم الخط -->
+    </div>
+
+    <!-- البوكس الأيسر - نص -->
+    <div class="text-center w-1/4 px-4 font-tajawal flex flex-col justify-center">
+      <p class="text-lg font-semibold mb-2">التخصص: IT</p>
+      <p class="text-2xl mb-1">المقرر: C++</p>
+      <p class="text-2xl mb-1">الزمن: ساعتان</p>
+      <p class="text-2xl mb-3">إختبار نهاية الترم</p>
+      <div class="timer text-4xl font-bold bg-blue-800 px-6 py-3 rounded-lg inline-block">
+        <span id="time">01:59:00</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+  .font-tajawal {
+      font-family: 'Tajawal', sans-serif;
+  }
+</style>
+
+
+
+      <!-- معلومات الطالب -->
+      <div class="border-b border-gray-200 p-6 bg-gray-50">
+            <p class="text-gray-700">
+              <span class="font-semibold">اسم الطالب:</span> أحمد علي
+            </p>
+      </div>
+      
+      <!-- شريط التقدم -->
+      <div class="bg-gray-200 h-2">
+        <div
+          id="progress-bar"
+          class="progress-bar bg-blue-500"
+          style="width: 0%"
+        ></div>
+      </div>
+
+      <!-- أسئلة الامتحان -->
+      <div class="p-6">
+        <form id="exam-form" method="POST" action="{% url 'student_app:exam_sucss' %}">
+          {% csrf_token %}
+
+          <!-- مثال لسؤال -->
+          <div
+            class="question-card mb-8 p-6 border border-gray-200 rounded-lg"
+            data-question="1"
+          >
+            <div class="flex justify-between items-start mb-4">
+              <h3 class="text-xl font-semibold text-gray-800">السؤال الأول</h3>
+              <span
+                class="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full"
+                >درجة السؤال: 1</span
+              >
+            </div>
+
+            <p class="text-gray-700 mb-6">
+              ما نوع البيانات المستخدم لتخزين الأعداد الصحيحة في لغة C++؟
+            </p>
+
+            <div class="space-y-3">
+              <div class="option-item">
+                <input
+                  type="radio"
+                  name="question_1"
+                  id="q1_option1"
+                  value="int"
+                  class="hidden peer"
+                />
+                <label
+                  for="q1_option1"
+                  class="block w-full p-4 border border-gray-200 rounded-lg cursor-pointer peer-checked:border-blue-500"
+                >
+                  <span class="font-medium">int</span>
+                </label>
+              </div>
+
+              <div class="option-item">
+                <input
+                  type="radio"
+                  name="question_1"
+                  id="q1_option2"
+                  value="float"
+                  class="hidden peer"
+                />
+                <label
+                  for="q1_option2"
+                  class="block w-full p-4 border border-gray-200 rounded-lg cursor-pointer peer-checked:border-blue-500"
+                >
+                  <span class="font-medium">float</span>
+                </label>
+              </div>
+
+              <div class="option-item">
+                <input
+                  type="radio"
+                  name="question_1"
+                  id="q1_option3"
+                  value="char"
+                  class="hidden peer"
+                />
+                <label
+                  for="q1_option3"
+                  class="block w-full p-4 border border-gray-200 rounded-lg cursor-pointer peer-checked:border-blue-500"
+                >
+                  <span class="font-medium">char</span>
+                </label>
+              </div>
+
+              <div class="option-item">
+                <input
+                  type="radio"
+                  name="question_1"
+                  id="q1_option4"
+                  value="double"
+                  class="hidden peer"
+                />
+                <label
+                  for="q1_option4"
+                  class="block w-full p-4 border border-gray-200 rounded-lg cursor-pointer peer-checked:border-blue-500"
+                >
+                  <span class="font-medium">double</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- يمكنك إضافة المزيد من الأسئلة هنا بنفس النمط -->
+
+          <div class="flex justify-between mt-8">
+            <button
+              type="button"
+              id="prev-btn"
+              class="px-6 py-3 bg-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled
+            >
+              السابق
+            </button>
+            <button
+              type="button"
+              id="next-btn"
+              class="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-all"
+            >
+              التالي
+            </button>
+            <button
+              type="submit"
+              id="submit-btn"
+              class="px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-all hidden"
+            >
+              إنهاء الامتحان
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- أحمر -->
+  <div class="bg-red-100 p-4 rounded border border-red-300">
+
+        <div class="container mx-auto">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- المربعات ستُنشأ ديناميكيًا بالجافاسكريبت -->
+        </div>
+    </div>
+
+  </div>
+</div>
+{% endblock content%}
+
+{% block extra_js %}
+<script>
+ document.addEventListener('DOMContentLoaded', function() {
+    // كود إنشاء المربعات
+    const container = document.querySelector('.grid');
+    const boxCount = 9;
+    
+    for (let i = 1; i <= boxCount; i++) {
+        const box = document.createElement('div');
+        box.className = 'question-box bg-red-500 text-white rounded-lg p-6 cursor-pointer flex flex-col items-center justify-center text-2xl font-bold shadow-md';
+        box.innerHTML = `<span class="mb-2">${i}</span><span class="text-sm font-normal">السؤال ${i}</span>`;
+        
+        box.addEventListener('click', function() {
+            document.querySelectorAll('.question-box').forEach(b => {
+                b.classList.remove('selected');
+                b.classList.add('bg-red-500');
+            });
+            this.classList.add('selected');
+            this.classList.remove('bg-red-500');
+            goToQuestion(i); // الانتقال للسؤال عند النقر
+        });
+        
+        container.appendChild(box);
+    }
+
+    // باقي كود العداد والتحكم بالأسئلة
+    let timeLeft = 119 * 60;
+    const timerElement = document.getElementById('time');
+    const progressBar = document.getElementById('progress-bar');
+    const totalQuestions = 9; // تغيير إلى العدد الفعلي للأسئلة
+    let currentQuestion = 1;
+    
+      // تحديث العداد
+      function updateTimer() {
+          const hours = Math.floor(timeLeft / 3600);
+          const minutes = Math.floor((timeLeft % 3600) / 60);
+          const seconds = timeLeft % 60;
+
+          timerElement.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+          if (timeLeft <= 0) {
+              clearInterval(timerInterval);
+              document.getElementById('exam-form').submit();
+          } else {
+              timeLeft--;
+          }
+
+          // تحديث شريط التقدم
+          const progressPercent = ((totalQuestions - currentQuestion + 1) / totalQuestions) * 100;
+          progressBar.style.width = `${progressPercent}%`;
+      }
+
+      const timerInterval = setInterval(updateTimer, 1000);
+      updateTimer(); // التشغيل الأولي
+
+      // تحديث حالة النقاط في القائمة الجانبية
+      function updateQuestionDots() {
+          document.querySelectorAll('.question-dot').forEach(dot => {
+              const questionNum = parseInt(dot.dataset.question);
+
+              // إزالة كل الحالات
+              dot.classList.remove('current', 'visited', 'unvisited');
+
+              // تحديد الحالة الحالية
+              if (questionNum === currentQuestion) {
+                  dot.classList.add('current');
+              } else {
+                  // هنا يمكنك التحقق مما إذا كان السؤال قد تمت زيارته أو الإجابة عليه
+                  const isAnswered = document.querySelector(`input[name="question_${questionNum}"]:checked`) !== null;
+                  dot.classList.add(isAnswered ? 'visited' : 'unvisited');
+              }
+          });
+      }
+
+      // الانتقال إلى سؤال معين
+      window.goToQuestion = function(questionNum) {
+          currentQuestion = questionNum;
+          updateQuestionDots();
+
+          // هنا يمكنك إضافة منطق للانتقال الفعلي بين الأسئلة
+          // مثلاً: document.querySelector(`[data-question="${questionNum}"]`).scrollIntoView();
+
+          // تحديث حالة أزرار التالي والسابق
+          document.getElementById('prev-btn').disabled = (currentQuestion === 1);
+
+          if (currentQuestion === totalQuestions) {
+              document.getElementById('next-btn').classList.add('hidden');
+              document.getElementById('submit-btn').classList.remove('hidden');
+          } else {
+              document.getElementById('next-btn').classList.remove('hidden');
+              document.getElementById('submit-btn').classList.add('hidden');
+          }
+      };
+
+      // التحكم بين الأسئلة
+      document.getElementById('next-btn').addEventListener('click', function() {
+          if (currentQuestion < totalQuestions) {
+              goToQuestion(currentQuestion + 1);
+          }
+      });
+
+      document.getElementById('prev-btn').addEventListener('click', function() {
+          if (currentQuestion > 1) {
+              goToQuestion(currentQuestion - 1);
+          }
+      });
+
+      // تحديث النقاط عند اختيار إجابة
+      document.querySelectorAll('input[type="radio"]').forEach(radio => {
+          radio.addEventListener('change', function() {
+              updateQuestionDots();
+          });
+      });
+
+      // التحقق قبل الإرسال
+      document.getElementById('exam-form').addEventListener('submit', function(e) {
+          if (timeLeft > 0) {
+              const confirmation = confirm('هل أنت متأكد أنك تريد إنهاء الامتحان؟');
+              if (!confirmation) {
+                  e.preventDefault();
+              }
+          }
+      });
+
+      // التهيئة الأولية
+      updateQuestionDots();
+  });
+</script>
+{% endblock extra_js%}

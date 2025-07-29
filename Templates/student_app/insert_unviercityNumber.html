@@ -1,8 +1,16 @@
 {% extends 'base.html' %}
 {% load static%}
 
+
+
+<!-- #region-------------------------------------------------------بداية الهيدر -------------------------------------------------------------->
+    {% block navbar_block %}
+    {% endblock navbar_block %} 
+<!-- #endregion----------------------------------------------------نهاية الهيدر -------------------------------------------------------------->
+
+
 {% block content %}
-<div class="min-h-screen flex items-center justify-center">
+<div class="min-h-screen flex items-center justify-center from-blue-50">
     <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
         <!-- شعار الجامعة -->
         <div class="flex justify-center mb-6">
@@ -14,7 +22,7 @@
         
         <h1 class="text-2xl font-bold text-center text-blue-800 mb-6">نظام تسجيل الحضور الإلكتروني</h1>
         
-        <form method="post"  class="space-y-4">
+        <form method="post"  class="space-y-4" action="{% url 'student_app:instructions' %}">
             {% csrf_token %}
             
             {% if error_message %}
