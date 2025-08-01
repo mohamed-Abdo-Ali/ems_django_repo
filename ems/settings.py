@@ -80,6 +80,34 @@ WSGI_APPLICATION = "ems.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+
+# -------------data connect with sqlserver-------------- 
+DATABASES = {
+    'default': {
+        'ENGINE': 'mssql',
+        'NAME': 'ems',  # استبدل هذا باسم قاعدة البيانات الفعلي
+        'HOST': 'DESKTOP-A33RERJ',     # كما يظهر في Server Name
+        'OPTIONS': {
+            'driver': 'ODBC Driver 17 for SQL Server',
+            'Trusted_Connection': 'yes',
+            'extra_params': 'Encrypt=no'  # إذا كنت لا تستخدم التشفير
+        },
+    }
+}
+
+
+# -------------data connect with mysql-------------- 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'ems1',
+#         'USER': 'root',
+#         'PASSWORD': '',  # إذا كان لديك كلمة مرور، ضعها هنا
+#         'PORT': '3388',
+#     }
+# }
+
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
