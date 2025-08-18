@@ -1,0 +1,157 @@
+<!-- templates/includes/messages.html -->
+{% if messages %}
+<div id="messages-container" class="fixed bottom-4 left-2/2 transform -translate-x-1/2 z-50 w-full max-w-md px-4 space-y-2">
+    {% for message in messages %}
+    <div 
+        id="message-{{ forloop.counter }}" 
+        class="message-item relative flex items-center p-4 rounded-lg shadow-xl cursor-pointer transition-all duration-300 hover:scale-[1.02] active:scale-95
+            {% if message.tags == 'success' %}bg-emerald-50 text-emerald-800 border border-emerald-200
+            {% elif message.tags == 'error' %}bg-rose-50 text-rose-800 border border-rose-200
+            {% elif message.tags == 'warning' %}bg-amber-50 text-amber-800 border border-amber-200
+            {% else %}bg-sky-50 text-sky-800 border border-sky-200{% endif %}"
+        onclick="dismissMessage('message-{{ forloop.counter }}')"
+    >
+        <!-- أيقونة -->
+        <div class="flex-shrink-0">
+            {% if message.tags == 'success' %}
+            <svg class="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {% elif message.tags == 'error' %}
+            <svg class="w-6 h-6 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {% elif message.tags == 'warning' %}
+            <svg class="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            {% else %}
+            <svg class="w-6 h-6 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {% endif %}
+        </div>
+
+        <!-- نص الرسالة -->
+        <div class="ml-3 flex-1">
+            <p class="text-sm font-medium">{{ message }}</p>
+        </div>
+
+        <!-- زر الإغلاق -->
+        <button class="ml-2 flex-shrink-0 text-gray-400 hover:text-gray-500 focus:outline-none">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+
+        <!-- شريط التقدم -->
+        <div class="absolute bottom-0 left-0 right-0 h-1 bg-current opacity-10 rounded-b-lg">
+            <div class="progress-bar h-full rounded-b-lg 
+                {% if message.tags == 'success' %}bg-emerald-500
+                {% elif message.tags == 'error' %}bg-rose-500
+                {% elif message.tags == 'warning' %}bg-amber-500
+                {% else %}bg-sky-500{% endif %}"
+                style="width: 100%"></div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<style>
+    /* حركات الرسائل */
+    .message-item {
+        animation: slideInUp 0.3s ease-out forwards;
+        transform: translateX(-50%);
+    }
+    
+    @keyframes slideInUp {
+        from { transform: translateY(20px) translateX(-50%); opacity: 0; }
+        to { transform: translateY(0) translateX(-50%); opacity: 1; }
+    }
+    
+    @keyframes fadeOutDown {
+        from { transform: translateY(0) translateX(-50%); opacity: 1; }
+        to { transform: translateY(20px) translateX(-50%); opacity: 0; }
+    }
+    
+    /* تحسينات للشريط التقدمي */
+    .progress-bar {
+        transition: width 5s linear;
+    }
+    
+    .message-item:hover .progress-bar {
+        animation-play-state: paused;
+    }
+</style>
+
+<script>
+// دالة لإخفاء الرسالة بسلاسة
+function dismissMessage(id) {
+    const message = document.getElementById(id);
+    if (message) {
+        message.style.animation = 'fadeOutDown 0.3s ease-out forwards';
+        setTimeout(() => {
+            message.remove();
+            // إعادة ترتيب الرسائل المتبقية إذا لزم الأمر
+            arrangeMessages();
+        }, 300);
+    }
+}
+
+// دالة لبدء العد التنازلي للرسائل
+function startMessageTimers() {
+    document.querySelectorAll('.message-item').forEach(message => {
+        const id = message.id;
+        const progressBar = message.querySelector('.progress-bar');
+        
+        // إخفاء تلقائي بعد 5 ثواني
+        const timer = setTimeout(() => {
+            dismissMessage(id);
+        }, 3000);
+        
+        // تتبع الوقت عند hover
+        message.addEventListener('mouseenter', () => {
+            clearTimeout(timer);
+            progressBar.style.animationPlayState = 'paused';
+        });
+        
+        message.addEventListener('mouseleave', () => {
+            const remainingWidth = parseFloat(progressBar.style.width);
+            const remainingTime = (remainingWidth / 100) * 5000;
+            
+            setTimeout(() => {
+                dismissMessage(id);
+            }, remainingTime);
+            
+            progressBar.style.animationPlayState = 'running';
+        });
+    });
+}
+
+// دالة لترتيب الرسائل المتبقية
+function arrangeMessages() {
+    const container = document.getElementById('messages-container');
+    if (container) {
+        const messages = container.querySelectorAll('.message-item');
+        messages.forEach((msg, index) => {
+            msg.style.marginBottom = index < messages.length - 1 ? '0.5rem' : '0';
+        });
+    }
+}
+
+// بدء التشغيل عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', () => {
+    startMessageTimers();
+    
+    // تحديث شريط التقدم
+    setInterval(() => {
+        document.querySelectorAll('.progress-bar').forEach(bar => {
+            const currentWidth = parseFloat(bar.style.width);
+            if (currentWidth > 0) {
+                bar.style.width = (currentWidth - 0.1) + '%';
+            }
+        });
+    }, 50);
+});
+</script>
+{% endif %}

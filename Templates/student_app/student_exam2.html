@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+
+{% load static %} 
+{% load arabic_tags %}
+{% block title %} الامتحان | EMS  {%endblock title%}
+
+{% block content %}
+
+
+<div class="flex flex-col lg:flex-row gap-2 md:gap-4 max-w-full mx-auto px-2 md:px-4 py-2 h-screen">
+
+
+  <!-- محتوى الامتحان الرئيسي -->
+  <div class="flex-1">
+    <div class="bg-white rounded-lg shadow-md overflow-hidden mb-4">
+      <!-- رأس صفحة الامتحان -->
+      <div class="bg-blue-600 text-white p-2 md:p-2">
+        <div class="flex flex-row items-stretch justify-between gap-1 md:gap-4">
+          <!-- البوكس الأيمن - نص -->
+          <div class="text-center min-w-[100px] md:w-1/4 px-1 font-tajawal flex flex-col justify-center">
+            <p class="text-xs md:text-base font-semibold mb-1 truncate">الجمهورية اليمنية</p>
+            <p class="text-xs md:text-base mb-1 truncate">وزارة التربية و التعليم</p>
+            <p class="text-xs md:text-base mb-1 truncate">جامعة تعز فرع التربة</p>
+            <p class="text-xs md:text-base truncate">كلية الحاسبات و تقنية المعلومات</p>
+          </div>
+
+          <!-- البوكس الأوسط - صورة ونص -->
+          <div class="flex flex-col items-center min-w-[80px] md:w-1/4 px-1 self-center">
+            <img
+              src="{% static 'img/tize_unvercity_logo.svg' %}"
+              alt="شعار الجامعة"
+              class="h-12 md:h-20 w-12 md:w-20 object-contain mb-1" 
+            />
+            <p class="text-xs md:text-base mb-1"> {% now "Y" %} </p>
+            <p class="text-xs md:text-base">أجب مستعيناً بالله</p>
+          </div>
+
+          <!-- البوكس الأيسر - نص -->
+          <div class="text-center min-w-[100px] md:w-1/4 px-1 font-tajawal flex flex-col justify-center">
+            <p class="text-xs md:text-sm font-semibold mb-1 truncate">   التخصص  :  {{first_exam.course.major.name}} </p>
+            <p class="text-xs md:text-base mb-1 truncate">المقرر:  {{first_exam.course.name}}</p>
+            <p class="text-xs md:text-base mb-1 truncate">الزمن: {{first_exam.duration}} ساعتان</p>
+
+            
+            <p class="text-xs md:text-base mb-1 truncate">
+              
+              {% if first_exam.exam_type == 1 %}
+                اختبار نصف الترم
+              {% elif first_exam.exam_type == 2 %}
+                امتحان نهاية الترم
+              {% elif first_exam.exam_type == 3 %}
+                امتحان تجريبي
+              {% endif %}
+
+            </p>
+
+            <div class="timer text-sm md:text-xl font-bold bg-blue-800 px-2 md:px-4 py-1 md:py-2 rounded-lg inline-block">
+              <span id="time">01:59:00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- معلومات الطالب -->
+      <div class="border-b border-gray-200 p-2 md:p-4 bg-gray-50 flex flex-row items-center gap-4">
+        <p class="text-gray-700 text-xs md:text-base">
+          <span class="font-semibold"></span> {{ connected_user.full_name }}
+        </p>
+        <p class="text-gray-700 text-xs md:text-base">
+          <span class="font-semibold"></span> {{ the_student.university_id }}
+        </p>
+      </div>
+
+
+
+
+
+
+      
+
+      <div class="p-2 ">
+        <form id="exam-form" method="POST" >
+          {% csrf_token %}
+          
+
+
+
+          
+          
+          <div>
+            
+            
+            
+            
+            
+            
+            
+            
+            <!-- أسئلة الامتحان --> 
+            
+            
+            {% for question in exam_question_all_qution %}
+              <div class="mb-3 p-3 md:p-4 border border-gray-200 rounded-lg transition-all duration-300 hover:shadow-lg">
+              <div class="flex flex-col md:flex-row justify-between items-start mb-2 gap-1">
+                <h3 class="text-sm md:text-lg font-semibold text-gray-800">السؤال: {{ forloop.counter|arabic_ordinal }}</h3>
+                <span class="bg-blue-100 text-blue-800 text-xs md:text-sm font-medium px-2 py-1 rounded-full">درجة السؤال: {{ question.points }}</span>
+              </div>
+              
+              <p class="text-gray-700 text-xs md:text-base mb-2 md:mb-3">
+                {{ question.text }}
+              </p>
+
+
+              {% if question|is_question %}
+                {% comment %} <p>السؤال الموضوعي</p> {% endcomment %}
+                <!--   إجابات الاسئلة صح و خطاء و متعدد الخيارات  -->
+                  <div class="space-y-1 md:space-y-2">
+                    {% for answer in question.answers.all %}
+                    <div class="transition-all duration-200 hover:-translate-x-1">
+                      <input
+                        type="radio"
+                        name="question_{{ question.id }}"
+                        id="q{{ question.id }}_option{{ forloop.counter }}"
+                        value="{{ answer.id }}"
+                        class="hidden peer"
+                        required
+                      />
+                      <label
+                        for="q{{ question.id }}_option{{ forloop.counter }}"
+                        class="block w-full p-2 md:p-3 border border-gray-200 rounded-lg cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-50 hover:bg-gray-50 text-xs md:text-base"
+                      >
+                        <span class="font-medium">{{ answer.answer_text }}</span>
+                      </label>
+                    </div>
+                    {% endfor %}
+                  </div>
+              {% elif question|is_essay_question %}
+                {% comment %} <p>السؤال المقالي</p> {% endcomment %}
+                  <div class="essay-question mt-3">
+                      <textarea 
+                          name="essay_answer_{{ question.id }}"
+                          id="essay_{{ question.id }}"
+                          class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          rows="5"
+                          placeholder="أكتب إجابتك هنا..."
+                          required
+                      ></textarea>
+                      <div class="mt-2 text-xs text-gray-500">
+                          <p>ملاحظة: يمكنك كتابة إجابتك في المساحة أعلاه. تأكد من مراجعة إجابتك قبل التسليم.</p>
+                      </div>
+                  </div>
+              {% elif question|is_numeric_question %}
+                {% comment %} <p>السؤال العددي</p> {% endcomment %}
+                <div class="numeric-question mt-3">
+                      <input 
+                          type="number"
+                          name="numeric_answer_{{ question.id }}"
+                          id="numeric_{{ question.id }}"
+                          class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="أدخل الإجابة الرقمية هنا"
+                          step="any"
+                          required
+                      >
+                      <div class="mt-2 text-xs text-gray-500">
+                          <p>ملاحظة: أدخل الرقم فقط دون أي رموز أو أحرف أخرى.</p>
+                      </div>
+                  </div>
+              {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+
+
+
+
+
+
+
+            <div class="flex justify-between mt-3 md:mt-4 gap-1">
+            <button
+              type="button"
+              id="prev-btn"
+              class="px-2 py-1 md:px-4 md:py-2 bg-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-xs md:text-base"
+              disabled
+            >
+              السابق
+            </button>
+            <button
+              type="button"
+              class="px-2 py-1 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-all text-xs md:text-base"
+            >
+              التالي
+            </button>
+            <button
+              type="submit"
+              class="px-2 py-1 md:px-4 md:py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-all hidden text-xs md:text-base"
+            >
+              إنهاء الامتحان
+            </button>
+         
+          </div>
+        
+        
+        
+        
+        
+        </form>
+      </div>
+    </div>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+</div>
+
+
+{% endblock content%}
+
+
+
+
+

@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}القواعد والإرشادات{% endblock %}
+{% block title %} القواعد و الارشادات | EMS  {% endblock %}
 
 {% block content %}
 <div class="min-h-screen py-8">
@@ -9,6 +9,7 @@
             <!-- رأس الصفحة -->
             <div class="bg-blue-600 py-4 px-6">
                 <h1 class="text-2xl font-bold text-white text-center">القواعد والإرشادات</h1>
+
             </div>
             
             <!-- محتوى الإرشادات -->
@@ -41,7 +42,7 @@
                 
                 <!-- زر الموافقة -->
                 <div class="pt-4 border-t border-gray-200">
-                    <form method="post" action="{% url 'student_app:student_exam' %}"d>
+                    <form method="POST">
                         {% csrf_token %}
                         <div class="flex items-center mb-4">
                             <input 
@@ -56,12 +57,21 @@
                         </div>
                         
                         <div class="flex justify-center">
-                            <button 
+                             <button 
                                 type="submit"
+                                name="submit_butt"
                                 class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition duration-300">
                                 بداء الاختبار
-                            </button>
+                            </button> 
                         </div>
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="ml-3 flex-1">
+                                    <p class="text-sm font-medium">{{ message }}</p>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                       
                     </form>
                 </div>
             </div>

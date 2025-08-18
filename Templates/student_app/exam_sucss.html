@@ -1,6 +1,9 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block title %} إنتهاء الامتحان | EMS  {%endblock title%}
+
+
 {% block content %}
 <div class="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
     <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-md text-center">
@@ -21,9 +24,18 @@
             
             <p class="text-lg text-blue-800 font-medium">عدد الاسئلة التي اجبت عليها </p>
             <p class="text-3xl font-bold text-blue-900 mt-2"> 50 من 100 سؤال</p>
+
+            <p class="text-lg text-blue-800 font-medium">الدرجة  </p>
+            <p class="text-3xl font-bold text-blue-900 mt-2">{{total_score}}</p>
         </div>
         
-      
+                {% if messages %}
+                {% for message in messages %}
+                    <div class="ml-3 flex-1">
+                        <p class="text-sm font-medium">{{ message }}</p>
+                    </div>
+                {% endfor %}
+            {% endif %}
     </div>
 </div>
 {% endblock %}

@@ -29,9 +29,17 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 
+
+AUTH_USER_MODEL = 'authentcat_app.User'
+
+# إعدادات إضافية لتجاوز متطلبات الإيميل
+ACCOUNT_EMAIL_REQUIRED = False  # إذا كنت تستخدم django-allauth
+
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
+    'authentcat_app.apps.AuthentcatAppConfig',
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -39,13 +47,15 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     #the app created by developer
-    'authentcat_app.apps.AuthentcatAppConfig',
     'student_app.apps.StudentAppConfig',
     'taecher_app.apps.TaecherAppConfig',
     'conttroll_app.apps.ConttrollAppConfig',
     'admin_app.apps.AdminAppConfig',
     'core_app.apps.CoreAppConfig',
 ]
+
+
+
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -56,6 +66,10 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+
+
+
 
 ROOT_URLCONF = "ems.urls"
 
@@ -80,20 +94,32 @@ WSGI_APPLICATION = "ems.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-
-# -------------data connect with sqlserver-------------- 
+# -----------data connect with postqreSQL-------------- 
 DATABASES = {
     'default': {
-        'ENGINE': 'mssql',
-        'NAME': 'ems',  # استبدل هذا باسم قاعدة البيانات الفعلي
-        'HOST': 'DESKTOP-A33RERJ',     # كما يظهر في Server Name
-        'OPTIONS': {
-            'driver': 'ODBC Driver 17 for SQL Server',
-            'Trusted_Connection': 'yes',
-            'extra_params': 'Encrypt=no'  # إذا كنت لا تستخدم التشفير
-        },
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'ems',
+        'USER': 'postgres',
+        'PASSWORD': 'm123&456m',
+        'HOST': 'localhost',  # أو عنوان الخادم
+        'PORT': '5432',      # البورت الافتراضي لـ PostgreSQL
     }
 }
+
+
+# -------------data connect with sqlserver-------------- 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'mssql',
+#         'NAME': 'ems',  # استبدل هذا باسم قاعدة البيانات الفعلي
+#         'HOST': 'DESKTOP-A33RERJ',     # كما يظهر في Server Name
+#         'OPTIONS': {
+#             'driver': 'ODBC Driver 17 for SQL Server',
+#             'Trusted_Connection': 'yes',
+#             'extra_params': 'Encrypt=no'  # إذا كنت لا تستخدم التشفير
+#         },
+#     }
+# }
 
 
 # -------------data connect with mysql-------------- 
@@ -107,13 +133,6 @@ DATABASES = {
 #     }
 # }
 
-
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
 
 
 # Password validation
@@ -135,10 +154,15 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+
+
+
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "ar"
+# LANGUAGE_CODE = "en-us"
 
 TIME_ZONE = "UTC"
 
@@ -161,10 +185,122 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # هذا اذا كان الستاتيك في مجلد واحد فقط في مجلد المشروع اما الان في كل تطبيق الستاتيك الخاصة بة لا داعي للتحديد
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'ems\static'),  # مسار مجلد الملفات الثابتة الخاص بك
+    os.path.join(BASE_DIR, 'ems/static'),  # مسار مجلد الملفات الثابتة الخاص بك
 ]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+
+
+
+
+
+
+# ====================== jazzmin admin panel pack===================================
+# Custom Admin Settings
+JAZZMIN_SETTINGS = {
+    "custom_css": "css/rtl.css",  # هنا أضفنا ملف RTL
+    "site_title": "Coding Hustler",
+    "site_header": "Coding Hustler",
+    "site_brand": "Modern Marketplace ",
+    "site_icon": "img/tize_unvercity_logo.svg",
+    # "site_logo": "img/Mohammed.jpg",
+    "welcome_sign": "Welcome To Coding Hustler",
+    "copyright": "Coding-Hustler",
+    "user_avatar": "img/tize_unvercity_logo.svg",
+    "topmenu_links": [
+        {"name": "Dashboard", "url": "home", "permissions": ["auth.view_user"]},
+        {"model": "auth.User"},
+    ],
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    "order_with_respect_to": [
+        "api",
+        "api.Post",
+        "api.Category",
+        "api.Comment",
+        "api.Bookmark",
+        "api.Notification",
+    ],
+    "icons": {
+        "admin.LogEntry": "fas fa-file",
+
+        "auth": "fas fa-users-cog",
+        "auth.user": "fas fa-user",
+
+        "api.User": "fas fa-user",
+        "api.Profile":"fas fa-address-card",
+        "api.Post":"fas fa-th",
+        "api.Category":"fas fa-tag",
+        "api.Comment":"fas fa-envelope",
+        "api.Notification":"fas fa-bell",
+        "api.Bookmark":"fas fa-heart",
+
+        
+    },
+    "default_icon_parents": "fas fa-chevron-circle-right",
+    "default_icon_children": "fas fa-arrow-circle-right",
+    "related_modal_active": False,
+    
+    "custom_js": None,
+    "show_ui_builder": True,
+    
+    "changeform_format": "horizontal_tabs",
+    "changeform_format_overrides": {
+        "auth.user": "collapsible",
+        "auth.group": "vertical_tabs",
+    },
+}
+
+# Jazzmin Tweaks
+
+JAZZMIN_UI_TWEAKS = {
+    "navbar_small_text": False,
+    "footer_small_text": False,
+    "body_small_text": True,
+    "brand_small_text": False,
+    "brand_colour": "navbar-indigo",
+    "accent": "accent-olive",
+    "navbar": "navbar-indigo navbar-dark",
+    "no_navbar_border": False,
+    "navbar_fixed": False,
+    "layout_boxed": False,
+    "footer_fixed": False,
+    "sidebar_fixed": False,
+    "sidebar": "sidebar-dark-indigo",
+    "sidebar_nav_small_text": False,
+    "sidebar_disable_expand": False,
+    "sidebar_nav_child_indent": False,
+    "sidebar_nav_compact_style": False,
+    "sidebar_nav_legacy_style": False,
+    "sidebar_nav_flat_style": False,
+    "theme": "default",
+    "dark_mode_theme": None,
+    "button_classes": {
+        "primary": "btn-outline-primary",
+        "secondary": "btn-outline-secondary",
+        "info": "btn-info",
+        "warning": "btn-warning",
+        "danger": "btn-danger",
+        "success": "btn-success"
+    }
+}
+# ==========================================================================================================
+
+
+
+
+
+
+# إعدادات الجلسة
+SESSION_ENGINE = "django.contrib.sessions.backends.db"  # يستخدم قاعدة البيانات لتخزين الجلسات
+SESSION_COOKIE_AGE = 1209600  # 14 يومًا بالثواني
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # الجلسة لا تنتهي عند إغلاق المتصفح
+SESSION_COOKIE_SECURE = False  # True إذا كنت تستخدم HTTPS
+SESSION_COOKIE_HTTPONLY = True  # لأمان أفضل
+SESSION_COOKIE_SAMESITE = 'Lax'  # لمنع بعض هجمات CSRF
+

@@ -3,7 +3,7 @@
 {% load static %}
 
 <!-- #region__________________________________________________________بداية عنوان الصفحة ___________________________________________________--> 
-{% block title %}تسجيل الدخول{% endblock %}
+{% block title %} تسجيل الدخول | EMS  {% endblock %}
 <!-- #endregion_______________________________________________________نهاية عنوان الصفحة ___________________________________________________--> 
 
 <!-- #region____________________________________________________css ا بداية لاضافي للصفحة ___________________________________________________--> 
@@ -53,7 +53,7 @@
     <!-- #endregion__________بداية العناصر الخلفية المتحركة_______________-->
 
 
-    <div class="bg-white p-8 rounded-xl shadow-xl w-full max-w-md z-10 backdrop-blur-sm bg-opacity-90 animate-form">
+    <div class="bg-white p-3 py-3 px-7 rounded-xl shadow-xl w-full max-w-md z-10 backdrop-blur-sm bg-opacity-90 animate-form ">
         <!-- شعار الجامعة -->
         <div class="flex justify-center mb-6 transform transition-all duration-300 hover:scale-105">
             <img 
@@ -64,23 +64,11 @@
         
         <h1 class="text-2xl font-bold text-center text-blue-800 mb-6 animate-[fadeIn_0.8s_ease-out]">نظام الامتحانات الإلكترونية</h1>
         
-        <form method="post" class="space-y-5" action="{% url 'authentcat_app:insert_phoneEmail' %}" id="loginForm">
+        <form method="POST" class="space-y-5"  id="loginForm">
             {% csrf_token %}
             
-            {% if form.errors %}
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative animate-[fadeIn_0.5s_ease-out] mb-4" role="alert">
-                <strong>خطأ!</strong> اسم المستخدم أو كلمة المرور غير صحيحة.
-                {% for field, errors in form.errors.items %}
-                    {% for error in errors %}
-                        <p class="mt-1 text-sm">{{ error }}</p>
-                    {% endfor %}
-                {% endfor %}
-            </div>
-            {% endif %}
-            
-            <!-- #region 1-->
 
-            <!-- #endregion -->
+
 
             <!-- حقل اسم المستخدم -->
             <div class="animate-[fadeIn_0.6s_ease-out_0.2s_backwards]">
@@ -153,7 +141,7 @@
                 <label class="remember-me-label">
                     <!-- مربع الاختيار المخصص -->
                     <span class="custom-checkbox">
-                    <input type="checkbox" class="hidden-checkbox">
+                    <input type="checkbox" class="hidden-checkbox" name="remember_me">
                     <span class="checkmark">
                         <svg viewBox="0 0 24 24" class="check-icon">
                         <path d="M20 6L9 17l-5-5"/>
@@ -317,6 +305,7 @@
                 <button 
                     type="submit" 
                     id="submitBtn"
+                    name="login_button_template"
                     class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-[1.02] active:scale-95 shadow-md hover:shadow-lg flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed">
                     <span id="btnText">الدخول</span>
                     <svg id="btnSpinner" class="h-5 w-5 mr-2 hidden animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -334,8 +323,15 @@
                 <a href="{% url 'authentcat_app:password_reset' %}" class="text-blue-600 hover:text-blue-800 text-sm hover:underline transition-all duration-200">نسيت كلمة المرور؟</a>
             </div>
         </form>
+        {% if messages %}
+            {% for message in messages %}
+                <div class="ml-3 flex-1">
+                    <p class="text-sm font-medium">{{ message }}</p>
+                </div>
+            {% endfor %}
+        {% endif %}
     </div>
-</>
+</div>
 
 <script>
 // عناصر DOM

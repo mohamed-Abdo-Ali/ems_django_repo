@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8" dir="rtl">
+  <!-- شهادة الجامعة -->
+  <div class="text-center mb-8">
+    <div class="flex justify-center mb-4">
+      <img src="{% static 'img/tize_unvercity_logo.svg' %}" alt="شعار الجامعة" class="h-20">
+
+    </div>
+    <h1 class="text-3xl font-bold text-gray-800">جامعة تعز فرع التربة</h1>
+    
+    
+    <h2 class="text-2xl font-semibold text-blue-800 mt-2">جدول الامتحانات النهائية</h2>
+    <p class="text-gray-600 mt-2">الفصل الدراسي: الثاني - العام الجامعي {{ academic_year }}</p>
+    
+</div>
+
+  <!-- زر التصدير -->
+  <div class="flex justify-end mb-4">
+    <button onclick="generatePDF()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md flex items-center">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+      </svg>
+      تصدير إلى PDF
+    </button>
+  </div>
+
+  <!-- جدول الامتحانات -->
+  <div class="bg-white rounded-lg shadow-lg overflow-hidden" id="examTable">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-800 text-white">
+        <tr>
+          <th class="px-6 py-3 text-right text-sm font-medium uppercase tracking-wider">المقرر</th>
+          <th class="px-6 py-3 text-right text-sm font-medium uppercase tracking-wider">نوع المقرر</th>
+          <th class="px-6 py-3 text-right text-sm font-medium uppercase tracking-wider">الامتحان</th>
+          <th class="px-6 py-3 text-right text-sm font-medium uppercase tracking-wider">نوع الامتحان</th>
+          <th class="px-6 py-3 text-right text-sm font-medium uppercase tracking-wider">التاريخ</th>
+          <th class="px-6 py-3 text-right text-sm font-medium uppercase tracking-wider">الوقت</th>
+          <th class="px-6 py-3 text-right text-sm font-medium uppercase tracking-wider">القاعة</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        {% for exam in exam_schedules %}
+        <tr class="hover:bg-gray-50 transition-colors">
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ exam.course_name }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            <span class="px-2 py-1 rounded-full text-xs 
+              {% if exam.course_type == 'نظري' %}bg-blue-100 text-blue-800
+              {% else %}bg-green-100 text-green-800{% endif %}">
+              {{ exam.course_type }}
+            </span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">{{ exam.exam_name }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            <span class="px-2 py-1 rounded-full text-xs 
+              {% if exam.exam_type == 'نهائي' %}bg-red-100 text-red-800
+              {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+              {{ exam.exam_type }}
+            </span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ exam.exam_date|date:"Y/m/d" }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ exam.start_time|time:"H:i" }} - {{ exam.end_time|time:"H:i" }}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">{{ exam.hall_name }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- تذييل الصفحة -->
+  <div class="mt-8 text-center text-sm text-gray-500">
+    <p>جميع الحقوق محفوظة © جامعة التقنية والعلوم التطبيقية 2024</p>
+    <p class="mt-1">هذا الجدول صادر رسميًا من عمادة القبول والتسجيل</p>
+  </div>
+</div>
+
+<!-- مكتبة jsPDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+  // دالة التصدير إلى PDF
+  function generatePDF() {
+    const { jsPDF } = window.jspdf;
+    const element = document.getElementById('examTable');
+    
+    html2canvas(element).then(canvas => {
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save('جدول_الامتحانات_الجامعة.pdf');
+    });
+  }
+</script>
+{% endblock content%}

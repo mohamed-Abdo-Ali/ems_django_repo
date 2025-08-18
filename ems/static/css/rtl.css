@@ -1,0 +1,110 @@
+body {
+    direction: rtl !important;
+    text-align: right !important;
+}
+
+/* القائمة الجانبية */
+.main-sidebar {
+    right: 0 !important;
+    left: auto !important;
+}
+
+/* المحتوى */
+.content-wrapper {
+    margin-right: 250px !important; /* مساحة القائمة */
+    margin-left: 0 !important;
+}
+
+/* الأزرار داخل النافبار */
+.navbar-nav.ms-auto, .navbar-nav.ml-auto {
+    margin-left: 0 !important;
+    margin-right: auto !important;
+}
+
+
+.main-footer {
+    text-align: center !important;
+}
+
+
+
+.main-header {
+    position: relative !important; /* بدل fixed */
+}
+
+.main-footer {
+    position: relative !important; /* بدل fixed */
+}
+
+.content-wrapper {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    min-height: calc(100vh - 120px) !important; /* يحجز مكان للهيدر والفوتر */
+}
+
+
+
+
+
+/* تحويل الاتجاه العام */
+body, .content-wrapper, .main-footer, .main-header, .sidebar {
+    direction: rtl;
+    text-align: right;
+}
+
+/* جعل القائمة الجانبية تظهر من اليمين */
+.main-sidebar {
+    right: 0;
+    left: auto;
+}
+
+/* تعديل مكان المحتوى */
+.content-wrapper {
+    margin-right: 250px;
+    margin-left: 0;
+}
+
+/* تنسيق النصوص */
+.navbar-nav.ml-auto {
+    margin-right: auto !important;
+    margin-left: 0 !important;
+}
+
+/* إزالة الـ boxed layout وجعل الصفحة 100% */
+.wrapper {
+    max-width: 100% !important;
+    width: 100% !important;
+}
+
+/* جعل المحتوى يمتد لكامل الطول */
+html, body, .wrapper, .content-wrapper {
+    height: 100% !important;
+    min-height: 100% !important;
+}
+
+/* الهيدر يثبت في الأعلى */
+.main-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 1030;
+}
+
+/* الفوتر في الأسفل */
+.main-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+}
+
+/* ضبط مكان المحتوى بين الهيدر والفوتر */
+.content-wrapper {
+    margin-top: 60px;   /* ارتفاع الهيدر */
+    margin-bottom: 40px; /* ارتفاع الفوتر */
+    overflow-y: auto;
+}
+
