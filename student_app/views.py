@@ -3,8 +3,9 @@ from authentcat_app.models import User,Student
 from admin_app.models import Semester
 from django.contrib import messages
 from django.utils import timezone
-from conttroll_app.models import ExamScheduleView 
-from taecher_app.models import EssayQuestion, ObjectiveQuestionAttempt, StudentEssayAnswer, StudentExamAttendance,Exam,Question,Answer,StudentExamAttempt,NumericQuestion, StudentNumericAnswer
+from conttroll_app.models import StudentExamAttendance
+from taecher_app.models import EssayQuestion,Exam,Question,Answer,NumericQuestion
+from .models import ObjectiveQuestionAttempt,StudentEssayAnswer,StudentExamAttempt,StudentNumericAnswer
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
@@ -163,6 +164,10 @@ def instructions(request):
 # @require_POST
 def student_exam(request):
     
+    
+    
+    
+    
     Exams_available_ids = request.session.get('Exams_available_ids', [])
     Exams_available_ids_from_schedule = request.session.get('Exams_available', [])
     
@@ -212,69 +217,70 @@ def student_exam(request):
     
     
     
-    try:
-        question_id = request.POST.get('question_id')
-        question_type = request.POST.get('question_type')        
-        print(f"resive qution ID: {question_id} type : {question_type}")
+    if request.method == 'POST' :
+        try:
+            question_id = request.POST.get('question_id')
+            question_type = request.POST.get('question_type')        
+            print(f"resive qution ID: {question_id} type : {question_type}")
+            
+            if question_type == 'objective':
+                answer_id = request.POST.get('answer_id')
+                
+                question_obj = get_object_or_404(Question, id=question_id)
+                answer_obj = get_object_or_404(Answer, id=answer_id)
+                
+                objectiveQuestionAttempt = ObjectiveQuestionAttempt .objects.create(
+                    exam_attempt = last_attempt,
+                    question = question_obj,
+                    # defaults={'chosen_answer': answer_obj}
+                    chosen_answer = answer_obj
+                )
+                if objectiveQuestionAttempt :
+                    print("======> ok add ")
+                print(f"answer qution ID : {question_id}, answer id ID: {answer_id}")
+                
+                
+                
+            elif question_type == 'essay':
+                answer_text = request.POST.get('answer_text')
+                
+                question_obj = get_object_or_404(EssayQuestion, id=question_id)
+                
+                studentEssayAnswer =  StudentEssayAnswer.objects.create(
+                    exam_attempt = last_attempt,
+                    question = question_obj,
+                    answer_text = answer_text
+                )
+                print("======> ok add ",answer_text)
+                if studentEssayAnswer :
+                    print("======> ok add ")
+                print(f" answer qution ID: : {question_id}, text : {answer_text}")
+                
+                
+                
+            elif question_type == 'numeric':
+                answer_value = request.POST.get('answer_value')
+                
+                question_obj = get_object_or_404(NumericQuestion, id=question_id)
+                
+                studentNumericAnswer = StudentNumericAnswer.objects.create(
+                    exam_attempt = last_attempt,
+                    question = question_obj,
+                    student_answer = answer_value
+                )
+                if studentNumericAnswer :
+                    print("======> ok add ")
+                print(f" answer qution ID : {question_id}, value : {answer_value}")
+            
+            # return JsonResponse({'status': 'success', 'message': 'تم الحفظ بنجاح'})
+            
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
         
-        if question_type == 'objective':
-            answer_id = request.POST.get('answer_id')
-            
-            question_obj = get_object_or_404(Question, id=question_id)
-            answer_obj = get_object_or_404(Answer, id=answer_id)
-            
-            objectiveQuestionAttempt = ObjectiveQuestionAttempt .objects.create(
-                exam_attempt = last_attempt,
-                question = question_obj,
-                defaults={'chosen_answer': answer_obj}
-                # chosen_answer = answer_obj
-            )
-            if objectiveQuestionAttempt :
-                print("======> ok add ")
-            print(f"answer qution ID : {question_id}, answer id ID: {answer_id}")
-            
-            
-            
-        elif question_type == 'essay':
-            answer_text = request.POST.get('answer_text')
-            
-            question_obj = get_object_or_404(EssayQuestion, id=question_id)
-            
-            studentEssayAnswer =  StudentEssayAnswer.objects.create(
-                exam_attempt = last_attempt,
-                question = question_obj,
-                answer_text = answer_text
-            )
-            print("======> ok add ",answer_text)
-            if studentEssayAnswer :
-                print("======> ok add ")
-            print(f" answer qution ID: : {question_id}, text : {answer_text}")
-            
-            
-            
-        elif question_type == 'numeric':
-            answer_value = request.POST.get('answer_value')
-            
-            question_obj = get_object_or_404(NumericQuestion, id=question_id)
-            
-            studentNumericAnswer = StudentNumericAnswer.objects.create(
-                exam_attempt = last_attempt,
-                question = question_obj,
-                student_answer = answer_value
-            )
-            if studentNumericAnswer :
-                print("======> ok add ")
-            print(f" answer qution ID : {question_id}, value : {answer_value}")
         
-        # return JsonResponse({'status': 'success', 'message': 'تم الحفظ بنجاح'})
-        
-    except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
     
     
-    
-    
-    
+    print("post data : ", request.POST)
     if request.method == 'POST' and 'finsh_submet_exam_butt' in request.POST:
         
         request.session['last_attempt'] = last_attempt2

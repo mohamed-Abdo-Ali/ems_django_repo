@@ -1,7 +1,8 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from .models import Student
-from admin_app.models import Course, CourseEnrollment
+from admin_app.models import Course
+from conttroll_app.models import CourseEnrollment
 
 @receiver(post_save, sender=Student)
 def auto_enroll_student_in_courses(sender, instance, created, **kwargs):

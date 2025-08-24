@@ -1,20 +1,19 @@
 {% extends "base.html" %}
-
-{% load static %} 
+{% load static %}
 {% load arabic_tags %}
-{% block title %} الامتحان | EMS  {% endblock title %}
+
+{% block title %} الامتحان | EMS {% endblock title %}
 
 {% block content %}
-
 <div class="flex flex-col lg:flex-row gap-2 md:gap-4 max-w-full mx-auto px-2 md:px-4 py-2 h-screen">
 
-  <!-- محتوى الامتحان الرئيسي -->
+  <!-- المحتوى الرئيسي -->
   <div class="flex-1">
     <div class="bg-white rounded-lg shadow-md overflow-hidden mb-4">
-      <!-- رأس صفحة الامتحان -->
+      <!-- رأس الصفحة -->
       <div class="bg-blue-600 text-white p-2 md:p-2">
         <div class="flex flex-row items-stretch justify-between gap-1 md:gap-4">
-          <!-- البوكس الأيمن - نص -->
+          <!-- يمين -->
           <div class="text-center min-w-[100px] md:w-1/4 px-1 font-tajawal flex flex-col justify-center">
             <p class="text-xs md:text-base font-semibold mb-1 truncate">الجمهورية اليمنية</p>
             <p class="text-xs md:text-base mb-1 truncate">وزارة التربية و التعليم</p>
@@ -22,22 +21,18 @@
             <p class="text-xs md:text-base truncate">كلية الحاسبات و تقنية المعلومات</p>
           </div>
 
-          <!-- البوكس الأوسط - صورة ونص -->
+          <!-- وسط -->
           <div class="flex flex-col items-center min-w-[80px] md:w-1/4 px-1 self-center">
-            <img
-              src="{% static 'img/tize_unvercity_logo.svg' %}"
-              alt="شعار الجامعة"
-              class="h-12 md:h-20 w-12 md:w-20 object-contain mb-1" 
-            />
-            <p class="text-xs md:text-base mb-1"> {% now "Y" %} </p>
+            <img src="{% static 'img/tize_unvercity_logo.svg' %}" alt="شعار الجامعة" class="h-12 md:h-20 w-12 md:w-20 object-contain mb-1" />
+            <p class="text-xs md:text-base mb-1">{% now "Y" %}</p>
             <p class="text-xs md:text-base">أجب مستعيناً بالله</p>
           </div>
 
-          <!-- البوكس الأيسر - نص -->
+          <!-- يسار -->
           <div class="text-center min-w-[100px] md:w-1/4 px-1 font-tajawal flex flex-col justify-center">
-            <p class="text-xs md:text-sm font-semibold mb-1 truncate">التخصص: {{first_exam.course.major.name}}</p>
-            <p class="text-xs md:text-base mb-1 truncate">المقرر: {{first_exam.course.name}}</p>
-            <p class="text-xs md:text-base mb-1 truncate">الزمن: {{first_exam.duration}} ساعتان</p>
+            <p class="text-xs md:text-sm font-semibold mb-1 truncate">التخصص: {{ first_exam.course.major.name }}</p>
+            <p class="text-xs md:text-base mb-1 truncate">المقرر: {{ first_exam.course.name }}</p>
+            <p class="text-xs md:text-base mb-1 truncate">الزمن: {{ first_exam.duration }} ساعتان</p>
             <p class="text-xs md:text-base mb-1 truncate">
               {% if first_exam.exam_type == 1 %}
                 اختبار نصف الترم
@@ -64,34 +59,30 @@
         </p>
       </div>
 
-      <!-- شريط التقدم -->
+      <!-- شريط التقدم أعلى الصفحة -->
       <div class="bg-gray-200 h-2">
-        <div
-          id="progress-bar"
-          class="h-2 bg-blue-500 transition-all duration-500"
-          style="width: 0%"
-        ></div>
+        <div id="progress-bar" class="h-2 bg-blue-500 transition-all duration-500" style="width: 0%"></div>
       </div>
 
       <!-- أسئلة الامتحان -->
       <div class="p-2">
         <form id="exam-form" method="POST">
           {% csrf_token %}
-          
+
           {% for question in exam_question_all_qution %}
-          {% comment %} <div class="question-container {% if forloop.first %}block{% else %}hidden{% endif %}" 
-            id="question-{{ forloop.counter }}" 
-            data-question="{{ forloop.counter }}"> {% endcomment %}
-          <div class="question-container {% if forloop.first %}block{% else %}hidden{% endif %}" 
+          <div
+            class="question-container {% if forloop.first %}block{% else %}hidden{% endif %}"
             id="question-{{ forloop.counter }}"
             data-question="{{ forloop.counter }}"
-            data-question-id="{% if question|is_question %}{{ question.id }}{% elif question|is_essay_question %}{{ question.id }}{% elif question|is_numeric_question %}{{ question.id }}{% endif %}">
-            
+            data-question-id="{% if question|is_question %}{{ question.id }}{% elif question|is_essay_question %}{{ question.id }}{% elif question|is_numeric_question %}{{ question.id }}{% endif %}"
+          >
             <div class="mb-3 p-3 md:p-4 border border-gray-200 rounded-lg transition-all duration-300 hover:shadow-lg">
               <div class="flex flex-col md:flex-row justify-between items-start mb-2 gap-1">
-                <h3 class="text-sm md:text-lg font-semibold text-gray-800">السؤال: {{ forloop.counter|arabic_ordinal }}</h3>
+                <h3 class="text-sm md:text-lg font-semibold text-gray-800">
+                  السؤال: {{ forloop.counter|arabic_ordinal }}
+                </h3>
                 <span class="bg-blue-100 text-blue-800 text-xs md:text-sm font-medium px-2 py-1 rounded-full">
-                  درجة السؤال: 
+                  درجة السؤال:
                   {% if question|is_question %}
                     {{ question.points }}
                   {% elif question|is_essay_question %}
@@ -101,6 +92,7 @@
                   {% endif %}
                 </span>
               </div>
+
               <!-- نص السؤال -->
               <p class="text-gray-700 text-xs md:text-base mb-2 md:mb-3">
                 {% if question|is_question %}
@@ -113,63 +105,83 @@
               </p>
 
               {% if question|is_question %}
-                <!-- إجابات الاسئلة صح و خطاء و متعدد الخيارات -->
-                <div class="space-y-1 md:space-y-2">
-                  {% for answer in question.answers.all %}
-                  <div class="transition-all duration-200 hover:-translate-x-1">
-                    <input
-                      type="radio"
-                      name="question_{{ question.id }}"
-                      id="q{{ question.id }}_option{{ forloop.counter }}"
-                      value="{{ answer.id }}"
-                      class="hidden peer"
-                      required
-                    />
-                    <label
-                      for="q{{ question.id }}_option{{ forloop.counter }}"
-                      class="block w-full p-2 md:p-3 border border-gray-200 rounded-lg cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-50 hover:bg-gray-50 text-xs md:text-base text-gray-800"
-                    >
-                      <span class="font-medium">{{ answer.answer_text }}</span>
-                    </label>
-                  </div>
-                  {% endfor %}
-                </div>
-              {% elif question|is_essay_question %}
-                <!-- إجابات الاسئلة المقالية -->
-                <div class="essay-question mt-3">
-                  <textarea 
-                      name="essay_answer_{{ question.id }}"
-                      id="essay_{{ question.id }}"
-                      class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800"
-                      rows="5"
-                      placeholder="أكتب إجابتك هنا..."
-                      required
-                  ></textarea>
-                  <div class="mt-2 text-xs text-gray-500">
-                      <p>ملاحظة: يمكنك كتابة إجابتك في المساحة أعلاه. تأكد من مراجعة إجابتك قبل التسليم.</p>
-                  </div>
-                </div>
-              {% elif question|is_numeric_question %}
-                <!-- إجابات الاسئلة العددية -->
-                <div class="numeric-question mt-3">
-                  <input 
-                    type="number"
-                    name="numeric_answer_{{ question.id }}"
-                    id="numeric_{{ question.id }}"
-                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800 "
-                    placeholder="أدخل الإجابة الرقمية هنا"
-                    step="any"
-                    required
+              <!-- اختيارات -->
+              <div class="space-y-1 md:space-y-2">
+                {% for answer in question.answers.all %}
+                <div class="transition-all duration-200 hover:-translate-x-1">
+                  <input
+                    type="radio"
+                    name="question_{{ question.id }}"
+                    id="q{{ question.id }}_option{{ forloop.counter }}"
+                    value="{{ answer.id }}"
+                    class="hidden peer"
+                  />
+                  <label
+                    for="q{{ question.id }}_option{{ forloop.counter }}"
+                    class="block w-full p-2 md:p-3 border border-gray-200 rounded-lg cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-50 hover:bg-gray-50 text-xs md:text-base text-gray-800"
                   >
-                  <div class="mt-2 text-xs text-gray-500">
-                      <p>ملاحظة: أدخل الرقم فقط دون أي رموز أو أحرف أخرى.</p>
-                  </div>
+                    <span class="font-medium">{{ answer.answer_text }}</span>
+                  </label>
                 </div>
+                {% endfor %}
+              </div>
+
+              {% elif question|is_essay_question %}
+              <!-- مقالي -->
+              <div class="essay-question mt-3">
+                <textarea
+                  name="essay_answer_{{ question.id }}"
+                  id="essay_{{ question.id }}"
+                  class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800"
+                  rows="5"
+                  placeholder="أكتب إجابتك هنا..."
+                ></textarea>
+                <div class="mt-2 text-xs text-gray-500">
+                  <p>ملاحظة: تأكد من مراجعة إجابتك قبل التسليم.</p>
+                </div>
+              </div>
+
+              {% elif question|is_numeric_question %}
+              <!-- عددي -->
+              <div class="numeric-question mt-3">
+                <input
+                  type="number"
+                  name="numeric_answer_{{ question.id }}"
+                  id="numeric_{{ question.id }}"
+                  class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800"
+                  placeholder="أدخل الإجابة الرقمية هنا"
+                  step="any"
+                />
+                <div class="mt-2 text-xs text-gray-500">
+                  <p>ملاحظة: أدخل الرقم فقط دون أي رموز أو أحرف أخرى.</p>
+                </div>
+              </div>
               {% endif %}
             </div>
           </div>
           {% endfor %}
-          
+
+          <!-- مودال التأكيد -->
+          <div id="confirm-modal" class="fixed inset-0 z-50 hidden">
+            <div id="confirm-backdrop" class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm opacity-0 transition-opacity duration-200"></div>
+            <div class="absolute inset-0 flex items-center justify-center p-4">
+              <div id="confirm-panel" class="w-full max-w-md rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 opacity-0 scale-95 transition duration-200">
+                <div class="p-5 border-b">
+                  <h3 class="text-lg font-semibold text-gray-900">تأكيد إنهاء الامتحان</h3>
+                  <p class="mt-1 text-sm text-gray-600">أنت على وشك إنهاء الامتحان. بعد الإنهاء لن تتمكن من تعديل إجاباتك.</p>
+                </div>
+                <div class="p-5 space-y-3 text-sm text-gray-700">
+                  <div class="flex items-center gap-2"><span class="inline-flex h-2 w-2 rounded-full bg-red-500"></span>تأكد أنك أجبت على جميع الأسئلة المطلوبة.</div>
+                  <div class="flex items-center gap-2"><span class="inline-flex h-2 w-2 rounded-full bg-blue-500"></span>سيتم إرسال إجاباتك فورًا إلى النظام.</div>
+                </div>
+                <div class="p-4 bg-gray-50 flex items-center justify-between gap-3 rounded-b-2xl">
+                  <button id="cancel-submit" type="button" class="px-4 py-2 rounded-xl bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 transition">تراجع</button>
+                  <button id="confirm-submit" type="button" class="px-4 py-2 rounded-xl bg-green-600 text-white hover:bg-green-700 shadow-sm transition">نعم، إنهاء الامتحان</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- الأزرار -->
           <div class="flex justify-between mt-3 md:mt-4 gap-1">
             <button
@@ -180,6 +192,7 @@
             >
               السابق
             </button>
+
             <button
               type="button"
               id="next-btn"
@@ -188,60 +201,53 @@
               التالي
             </button>
 
-            
-            <button 
+            <!-- زر الإنهاء الموحد -->
+            <button
               type="submit"
-              id="submit-btn" 
+              id="submit-btn"
               name="finsh_submet_exam_butt"
-              class="px-2 py-1 md:px-4 md:py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-all hidden text-xs md:text-base"
+              value="1"
+              class="px-2 py-1 md:px-4 md:py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-all text-xs md:text-base hidden"
             >
               إنهاء الامتحان
             </button>
-
-            {% comment %} <button {% endcomment %}
-              {% comment %} type="submit"
-              id="submit-btn"
-              name="finsh_submet_exam_butt"
-              class="px-2 py-1 md:px-4 md:py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-all hidden text-xs md:text-base"
-            >
-              إنهاء الامتحان
-            </button> {% endcomment %}
           </div>
         </form>
       </div>
     </div>
   </div>
 
-  <!-- قائمة الأسئلة الجانبية - النسخة النهائية -->
+  <!-- القائمة الجانبية -->
   <div class="lg:w-48 xl:w-56 h-full">
     <div class="sticky top-0 h-full">
-      <div class="bg-gradient-to-br from-red-50 to-red-100 p-2 rounded-lg border border-red-200 shadow-sm h-full flex flex-col"> <!-- أضفنا flex flex-col و h-full -->
-        <h3 class="text-sm md:text-base font-semibold mb-2 text-center text-red-800">
-          قائمة الأسئلة
-        </h3>
+      <div class="bg-gradient-to-br from-red-50 to-red-100 p-2 rounded-lg border border-red-200 shadow-sm h-full flex flex-col">
+        <h3 class="text-sm md:text-base font-semibold mb-2 text-center text-red-800">قائمة الأسئلة</h3>
         <div class="flex-1 overflow-y-auto pr-1 custom-scroll">
           {% for question in exam_question_all_qution %}
-          <div class="relative flex items-center gap-2 p-1 hover:bg-red-100 rounded transition-all cursor-pointer"
-            onclick="goToQuestion({{ forloop.counter }})">
-            
-            <!-- شريط الإنجاز المتحرك -->
-            <div class="absolute inset-y-0 right-0 w-0 bg-gradient-to-r from-green-300 to-green-500 transition-all duration-2000 ease-out"
-              id="progress-{{ forloop.counter }}"></div>
-            
-            <!-- مربع الرقم - بنفس التنسيق الأصلي -->
-            <div class="relative z-10 w-6 h-6 md:w-8 md:h-8 flex-shrink-0 flex items-center justify-center rounded-md 
-              cursor-pointer transition-all duration-200 text-xs md:text-sm
-              {% if forloop.first %}border-2 border-blue-500 bg-white text-blue-500
-              {% else %}bg-red-500 text-white{% endif %}"
+          <div
+            class="relative flex items-center gap-2 p-1 hover:bg-red-100 rounded transition-all cursor-pointer"
+            onclick="goToQuestion({{ forloop.counter }})"
+          >
+            <!-- شريط الإنجاز -->
+            <div class="absolute inset-y-0 right-0 w-0 bg-gradient-to-r from-green-300 to-green-500 transition-all duration-2000 ease-out" id="progress-{{ forloop.counter }}"></div>
+
+            <!-- رقم السؤال -->
+            <div
+              class="relative z-10 w-6 h-6 md:w-8 md:h-8 flex-shrink-0 flex items-center justify-center rounded-md cursor-pointer transition-all duration-200 text-xs md:text-sm
+              {% if forloop.first %}border-2 border-blue-500 bg-white text-blue-500{% else %}bg-red-500 text-white{% endif %}"
               data-question="{{ forloop.counter }}"
-              id="dot-{{ forloop.counter }}">
+              data-question-id="{% if question|is_question %}{{ question.id }}{% elif question|is_essay_question %}{{ question.id }}{% elif question|is_numeric_question %}{{ question.id }}{% endif %}"
+              id="dot-{{ forloop.counter }}"
+            >
               {{ forloop.counter }}
             </div>
-            
-            <!-- نص السؤال في سطر واحد -->
+
+            <!-- نص مختصر -->
             <div class="relative z-10 flex-1 min-w-0 overflow-hidden">
-              <p class="text-xs md:text-sm text-gray-800 whitespace-nowrap overflow-hidden text-ellipsis" 
-                title="{% if question|is_question %}{{ question.text }}{% elif question|is_essay_question %}{{ question.question_text }}{% elif question|is_numeric_question %}{{ question.question_text }}{% endif %}">
+              <p
+                class="text-xs md:text-sm text-gray-800 whitespace-nowrap overflow-hidden text-ellipsis"
+                title="{% if question|is_question %}{{ question.text }}{% elif question|is_essay_question %}{{ question.question_text }}{% elif question|is_numeric_question %}{{ question.question_text }}{% endif %}"
+              >
                 {% if question|is_question %}
                   {{ question.text }}
                 {% elif question|is_essay_question %}
@@ -258,431 +264,347 @@
     </div>
   </div>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // تحديث الشريط والمربع عند الإجابة
-      document.querySelectorAll('input[type="radio"]').forEach(radio => {
-          radio.addEventListener('change', function() {
-              const questionId = this.name.split('_')[1];
-              const progressBar = document.getElementById(`progress-${questionId}`);
-              const questionDot = document.getElementById(`dot-${questionId}`);
-              
-              // تحريك الشريط بسلاسة
-              progressBar.style.width = '100%';
-              progressBar.style.transition = 'width 0.7s cubic-bezier(0.65, 0, 0.35, 1)';
-              
-              // تغيير لون المربع إلى الأخضر عند الإجابة
-              questionDot.classList.remove('bg-red-500', 'border-blue-500', 'bg-white', 'text-blue-500');
-              questionDot.classList.add('bg-green-500');
-          });
-      });
-      
-      // وظيفة الانتقال بين الأسئلة (محدثة)
-      window.goToQuestion = function(questionNum) {
-          // إخفاء كل الأسئلة
-          document.querySelectorAll('.question-container').forEach(q => {
-              q.classList.add('hidden');
-              q.classList.remove('block');
-          });
-          
-          // إظهار السؤال المطلوب
-          document.getElementById(`question-${questionNum}`).classList.remove('hidden');
-          document.getElementById(`question-${questionNum}`).classList.add('block');
-          
-          // تحديث حالة النقاط في القائمة الجانبية
-          document.querySelectorAll('[data-question]').forEach(dot => {
-              const dotQuestionNum = parseInt(dot.dataset.question);
-              const isAnswered = document.querySelector(`input[name="question_${dotQuestionNum}"]:checked`) !== null;
-              
-              if (dotQuestionNum === questionNum) {
-                  dot.classList.remove('bg-red-500', 'bg-green-500');
-                  dot.classList.add('border-2', 'border-blue-500', 'bg-white', 'text-blue-500');
-              } else if (isAnswered) {
-                  dot.classList.remove('border-2', 'border-blue-500', 'bg-white', 'text-blue-500', 'bg-red-500');
-                  dot.classList.add('bg-green-500', 'text-white');
-              } else {
-                  dot.classList.remove('border-2', 'border-blue-500', 'bg-white', 'text-blue-500', 'bg-green-500');
-                  dot.classList.add('bg-red-500', 'text-white');
-              }
-          });
-          
-          currentQuestion = questionNum;
-          document.getElementById('prev-btn').disabled = (currentQuestion === 1);
-
-          if (currentQuestion === totalQuestions) {
-              document.getElementById('next-btn').classList.add('hidden');
-              document.getElementById('submit-btn').classList.remove('hidden');
-          } else {
-              document.getElementById('next-btn').classList.remove('hidden');
-              document.getElementById('submit-btn').classList.add('hidden');
-          }
-          
-          // التمرير لأعلى الصفحة
-          window.scrollTo({top: 0, behavior: 'smooth'});
-      };
-    });
-  </script>  
-
+  <!-- أنماط إضافية -->
   <style>
+    .font-tajawal { font-family: 'Tajawal', sans-serif; }
 
-      /* تنسيقات إضافية للخطوط */
-    .font-tajawal {
-        font-family: 'Tajawal', sans-serif;
+    body { color: #1f2937; }
+    textarea, input[type="number"], input[type="text"] { color: #1f2937 !important; }
+    textarea:focus, input:focus { color: #1f2937; }
+
+    .custom-scroll::-webkit-scrollbar { width: 4px; }
+    .custom-scroll::-webkit-scrollbar-track { background: #fecaca; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #ef4444; border-radius: 4px; }
+
+    [id^="progress-"] { opacity: 0.6; z-index: 1; }
+
+    .transition-all {
+      transition-property: all;
+      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+      transition-duration: 200ms;
+    }
+    /* لإخفاء الأسهم في Chrome, Safari, Edge */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
     }
 
-    /* لون النص العام */
-    body {
-        color: #1f2937; /* رمادي داكن */
+    /* لإخفاء الأسهم في Firefox */
+    input[type=number] {
+        -moz-appearance: textfield;
     }
 
-    /* لون نص الإجابات */
-    textarea, input[type="number"], input[type="text"] {
-        color: #1f2937 !important;
-    }
-
-    /* لون النص عند التحديد */
-    .peer-checked:border-blue-500 .font-medium {
-        color: #1f2937;
-    }
-
-    /* لون النص في حالة hover */
-    .hover:bg-gray-50 .font-medium {
-        color: #1f2937;
-    }
-
-    /* لون النص في حالة التركيز */
-    textarea:focus, input:focus {
-        color: #1f2937;
-    }
-
-
-
-
-      /* شريط التمرير المخصص */
-      .custom-scroll::-webkit-scrollbar {
-          width: 4px;
-      }
-      .custom-scroll::-webkit-scrollbar-track {
-          background: #fecaca;
-      }
-      .custom-scroll::-webkit-scrollbar-thumb {
-          background: #ef4444;
-          border-radius: 4px;
-      }
-      
-      /* تأثيرات الشريط المتحرك */
-      [id^="progress-"] {
-          opacity: 0.6;
-          z-index: 1;
-      }
-      
-      /* تأثيرات الانتقال */
-      .transition-all {
-          transition-property: all;
-          transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-          transition-duration: 200ms;
-      }
-      
-
-
-    
   </style>
-
 </div>
 
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
-  .font-tajawal {
-      font-family: 'Tajawal', sans-serif;
-  }
+  .font-tajawal { font-family: 'Tajawal', sans-serif; }
 </style>
 {% endblock content %}
 
 {% block extra_js %}
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // إعداد العداد
-    let timeLeft = 119 * 60;
+  document.addEventListener('DOMContentLoaded', function () {
+    // إعدادات عامة
+    let timeLeft = 119 * 60; // بالثواني
     const timerElement = document.getElementById('time');
     const progressBar = document.getElementById('progress-bar');
+    const form = document.getElementById('exam-form');
+
     const totalQuestions = {{ exam_question_all_qution|length }};
     let currentQuestion = 1;
-    
+
+    const nextBtn = document.getElementById('next-btn');
+    const prevBtn = document.getElementById('prev-btn');
+    const submitBtn = document.getElementById('submit-btn');
+
+    // مودال التأكيد
+    const modal = document.getElementById('confirm-modal');
+    const backdrop = document.getElementById('confirm-backdrop');
+    const panel = document.getElementById('confirm-panel');
+    const confirmBtn = document.getElementById('confirm-submit');
+    const cancelBtn = document.getElementById('cancel-submit');
+
+    let isSubmitting = false;
+    let lastSubmitter = null;
+
+    // مؤقت
     function updateTimer() {
-        const hours = Math.floor(timeLeft / 3600);
-        const minutes = Math.floor((timeLeft % 3600) / 60);
-        const seconds = timeLeft % 60;
+      const hours = Math.floor(timeLeft / 3600);
+      const minutes = Math.floor((timeLeft % 3600) / 60);
+      const seconds = timeLeft % 60;
 
-        timerElement.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      timerElement.textContent =
+        `${hours.toString().padStart(2, '0')}:` +
+        `${minutes.toString().padStart(2, '0')}:` +
+        `${seconds.toString().padStart(2, '0')}`;
 
-        if (timeLeft <= 0) {
-            clearInterval(timerInterval);
-            document.getElementById('exam-form').submit();
-        } else {
-            timeLeft--;
-        }
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        // إضافة حقول تمييز انتهاء الوقت وإكمال الإرسال
+        const timeUp = document.createElement('input');
+        timeUp.type = 'hidden';
+        timeUp.name = 'time_up';
+        timeUp.value = '1';
+        form.appendChild(timeUp);
 
-        const progressPercent = (currentQuestion / totalQuestions) * 100;
-        progressBar.style.width = `${progressPercent}%`;
+        const finishFlag = document.createElement('input');
+        finishFlag.type = 'hidden';
+        finishFlag.name = 'finsh_submet_exam_butt';
+        finishFlag.value = '1';
+        form.appendChild(finishFlag);
+
+        form.submit(); // إرسال برمجي (لن يضمّن زر)، لكن الحقول المخفية تكفي
+        return;
+      } else {
+        timeLeft--;
+      }
+
+      const progressPercent = (currentQuestion / totalQuestions) * 100;
+      progressBar.style.width = `${progressPercent}%`;
     }
-
     const timerInterval = setInterval(updateTimer, 1000);
     updateTimer();
 
-    // التحكم بين الأسئلة
-    window.goToQuestion = function(questionNum) {
-        // إخفاء كل الأسئلة
-        document.querySelectorAll('.question-container').forEach(q => {
-            q.classList.add('hidden');
-            q.classList.remove('block');
-        });
-        
-        // إظهار السؤال المطلوب
-        document.getElementById(`question-${questionNum}`).classList.remove('hidden');
-        document.getElementById(`question-${questionNum}`).classList.add('block');
-        
-        // تحديث حالة النقاط في القائمة الجانبية
-        document.querySelectorAll('[data-question]').forEach(dot => {
-            const dotQuestionNum = parseInt(dot.dataset.question);
-            const isAnswered = document.querySelector(`input[name="question_${dotQuestionNum}"]:checked`) !== null;
-            
-            if (dotQuestionNum === questionNum) {
-                dot.classList.remove('bg-red-500', 'bg-green-500');
-                dot.classList.add( 'bg-white', 'text-blue-500');
-            } else if (isAnswered) {
-                dot.classList.remove('border-2', 'border-blue-500', 'bg-white', 'text-blue-500', 'bg-red-500');
-                dot.classList.add('bg-green-500', 'text-white');
-            } else {
-                dot.classList.remove('border-2', 'border-blue-500', 'bg-white', 'text-blue-500', 'bg-green-500');
-                dot.classList.add('bg-red-500', 'text-white');
-            }
-        });
-        
-        currentQuestion = questionNum;
-        document.getElementById('prev-btn').disabled = (currentQuestion === 1);
-
-        if (currentQuestion === totalQuestions) {
-            document.getElementById('next-btn').classList.add('hidden');
-            document.getElementById('submit-btn').classList.remove('hidden');
-        } else {
-            document.getElementById('next-btn').classList.remove('hidden');
-            document.getElementById('submit-btn').classList.add('hidden');
-        }
-        
-        // التمرير لأعلى الصفحة
-        window.scrollTo({top: 0, behavior: 'smooth'});
-    };
-
-    document.getElementById('next-btn').addEventListener('click', function() {
-        if (currentQuestion < totalQuestions) {
-            goToQuestion(currentQuestion + 1);
-        }
-    });
-
-    document.getElementById('prev-btn').addEventListener('click', function() {
-        if (currentQuestion > 1) {
-            goToQuestion(currentQuestion - 1);
-        }
-    });
-
-    document.getElementById('exam-form').addEventListener('submit', function(e) {
-        if (timeLeft > 0) {
-            const confirmation = confirm('هل أنت متأكد أنك تريد إنهاء الامتحان؟');
-            if (!confirmation) {
-                e.preventDefault();
-            }
-        }
-    });
-    
-    // تحديث حالة النقاط عند اختيار إجابة
-    document.querySelectorAll('input[type="radio"]').forEach(radio => {
-        radio.addEventListener('change', function() {
-            const questionNum = this.name.split('_')[1];
-            const dot = document.querySelector(`[data-question="${questionNum}"]`);
-            if (dot && !dot.classList.contains('border-blue-500')) {
-                dot.classList.remove('bg-red-500');
-            }
-        });
-    });
-
-
-
-
-    {% comment %} ========= الاجابات تتبع ==========
-    function saveAnswer(questionId, answerData, questionType) {
-        const form = document.getElementById('exam-form');
-        const formData = new FormData(form);
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-        
-        // إضافة البيانات الإضافية
-        formData.append('question_id', questionId);
-        formData.append('question_type', questionType);
-        
-        console.log("Sending data:", {
-            questionId,
-            answerData,
-            questionType
-        });
-
-        fetch('/student_app/student_exam/', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRFToken': csrfToken,
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log("Response:", data);
-            if (data.status === 'success') {
-                // تحديث الواجهة
-                const questionNumber = document.querySelector(`#question-${questionId}`).dataset.question;
-                const dot = document.getElementById(`dot-${questionNumber}`);
-                if (dot) {
-                    dot.classList.remove('bg-red-500');
-                    dot.classList.add('bg-green-500');
-                    
-                    const progressBar = document.getElementById(`progress-${questionNumber}`);
-                    if (progressBar) {
-                        progressBar.style.width = '100%';
-                    }
-                }
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
+    // تنقل بين الأسئلة
+    function toggleNavButtons() {
+      prevBtn.disabled = (currentQuestion === 1);
+      if (currentQuestion === totalQuestions) {
+        nextBtn.classList.add('hidden');
+        submitBtn.classList.remove('hidden');
+      } else {
+        nextBtn.classList.remove('hidden');
+        submitBtn.classList.add('hidden');
+      }
+      const progressPercent = (currentQuestion / totalQuestions) * 100;
+      progressBar.style.width = `${progressPercent}%`;
     }
 
-    // الأسئلة الموضوعية
-    document.querySelectorAll('input[type="radio"]').forEach(radio => {
-        radio.addEventListener('change', function() {
-            const questionId = this.name.split('_')[1];
-            const answerId = this.value;
-            saveAnswer(questionId, {answer_id: answerId}, 'objective');
-        });
+    function isAnswered(questionNum) {
+      // الحصول على ID الحقيقي للسؤال من النقطة الجانبية
+      const dot = document.getElementById(`dot-${questionNum}`);
+      if (!dot) return false;
+      const qId = dot.getAttribute('data-question-id');
+      if (!qId) return false;
+
+      // تحقق من كل نوع
+      const obj = document.querySelector(`input[name="question_${qId}"]:checked`);
+      if (obj) return true;
+
+      const essay = document.querySelector(`textarea[name="essay_answer_${qId}"]`);
+      if (essay && essay.value.trim().length > 0) return true;
+
+      const numeric = document.querySelector(`input[name="numeric_answer_${qId}"]`);
+      if (numeric && numeric.value !== '' && !isNaN(Number(numeric.value))) return true;
+
+      return false;
+    }
+
+    function updateSidebarStatus(questionNum) {
+      const dot = document.getElementById(`dot-${questionNum}`);
+      const progress = document.getElementById(`progress-${questionNum}`);
+      if (!dot) return;
+
+      const activeClasses = ['border-2', 'border-blue-500', 'bg-white', 'text-blue-500'];
+      const redClasses = ['bg-red-500', 'text-white'];
+      const greenClasses = ['bg-green-500', 'text-white'];
+
+      // الحالة الحالية
+      const answered = isAnswered(questionNum);
+
+      // صبغ النقطة
+      dot.classList.remove(...activeClasses, ...redClasses, ...greenClasses);
+      if (questionNum === currentQuestion) {
+        dot.classList.add(...activeClasses);
+      } else if (answered) {
+        dot.classList.add(...greenClasses);
+      } else {
+        dot.classList.add(...redClasses);
+      }
+
+      // تقدم الشريط داخل العنصر الجانبي
+      if (progress) {
+        progress.style.width = answered ? '100%' : '0%';
+        progress.style.transition = 'width 0.7s cubic-bezier(0.65, 0, 0.35, 1)';
+      }
+    }
+
+    function refreshAllSidebar() {
+      for (let i = 1; i <= totalQuestions; i++) {
+        updateSidebarStatus(i);
+      }
+    }
+
+    window.goToQuestion = function (questionNum) {
+      // إخفاء الكل
+      document.querySelectorAll('.question-container').forEach(q => {
+        q.classList.add('hidden');
+        q.classList.remove('block');
+      });
+      // إظهار المطلوب
+      const target = document.getElementById(`question-${questionNum}`);
+      if (target) {
+        target.classList.remove('hidden');
+        target.classList.add('block');
+      }
+      currentQuestion = questionNum;
+      toggleNavButtons();
+      refreshAllSidebar();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    nextBtn.addEventListener('click', function () {
+      if (currentQuestion < totalQuestions) goToQuestion(currentQuestion + 1);
+    });
+    prevBtn.addEventListener('click', function () {
+      if (currentQuestion > 1) goToQuestion(currentQuestion - 1);
     });
 
-    // الأسئلة العددية
-    document.querySelectorAll('input[type="number"]').forEach(input => {
-        input.addEventListener('change', function() {
-            const questionId = this.id.split('_')[1];
-            const answerValue = this.value;
-            saveAnswer(questionId, {answer_value: answerValue}, 'numeric');
-        });
+    // مودال التأكيد
+    function openModal() {
+      modal.classList.remove('hidden');
+      requestAnimationFrame(() => {
+        backdrop.classList.remove('opacity-0');
+        panel.classList.remove('opacity-0', 'scale-95');
+      });
+      confirmBtn.focus();
+    }
+    function closeModal() {
+      backdrop.classList.add('opacity-0');
+      panel.classList.add('opacity-0', 'scale-95');
+      setTimeout(() => modal.classList.add('hidden'), 180);
+    }
+
+    // التقاط الزر المُرسل
+    form.addEventListener('submit', function (e) {
+      if (isSubmitting) return; // السماح بالإرسال الثاني
+      lastSubmitter = e.submitter || null;
+      if (typeof timeLeft !== 'undefined' && timeLeft > 0) {
+        e.preventDefault(); // أوقف الإرسال لعرض المودال
+        openModal();
+      }
+      // إذا timeLeft <= 0 لن يُمنع الإرسال (في حالة إرسال برمجي عند انتهاء الوقت)
     });
 
-    // الأسئلة المقالية
-    let essayTimeout;
-    document.querySelectorAll('textarea').forEach(textarea => {
-        textarea.addEventListener('input', function() {
-            clearTimeout(essayTimeout);
-            essayTimeout = setTimeout(() => {
-                const questionId = this.id.split('_')[1];
-                const answerText = this.value;
-                saveAnswer(questionId, {answer_text: answerText}, 'essay');
-            }, 1000);
-        });
-    }); {% endcomment %}
+    // تأكيد إنهاء الامتحان
+    confirmBtn.addEventListener('click', function () {
+      isSubmitting = true;
+      closeModal();
 
+      // إرسال يحافظ على اسم وقيمة زر الإرسال
+      if (form.requestSubmit && lastSubmitter) {
+        form.requestSubmit(lastSubmitter);
+      } else if (lastSubmitter) {
+        lastSubmitter.click();
+      } else {
+        // احتياطي: حقن حقل مخفي لضمان تحقق السيرفر
+        const hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.name = 'finsh_submet_exam_butt';
+        hidden.value = '1';
+        form.appendChild(hidden);
+        form.submit();
+      }
+    });
 
+    cancelBtn.addEventListener('click', closeModal);
+    backdrop.addEventListener('click', closeModal);
+    document.addEventListener('keydown', function (e) {
+      if (!modal.classList.contains('hidden') && e.key === 'Escape') closeModal();
+    });
 
-
+    // حفظ الإجابات (AJAX)
     function saveAnswer(questionType) {
-        const currentQuestionElement = document.querySelector(`.question-container:not(.hidden)`);
-        const questionRealId = currentQuestionElement.getAttribute('data-question-id'); // الحصول على ID الحقيقي
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-        
-        let formData = new FormData();
-        
-        if (questionType === 'objective') {
-            const selectedOption = currentQuestionElement.querySelector('input[type="radio"]:checked');
-            if (!selectedOption) return;
-            
-            formData.append('question_id', questionRealId); // استخدام ID الحقيقي
-            formData.append('answer_id', selectedOption.value);
-            formData.append('question_type', 'objective');
-        } 
-        else if (questionType === 'essay') {
-            const answerText = currentQuestionElement.querySelector('textarea').value;
-            if (!answerText.trim()) return;
-            
-            formData.append('question_id', questionRealId); // استخدام ID الحقيقي
-            formData.append('answer_text', answerText);
-            formData.append('question_type', 'essay');
-        }
-        else if (questionType === 'numeric') {
-            const numericInput = currentQuestionElement.querySelector('input[type="number"]');
-            const answerValue = numericInput.value;
-            
-            if (!answerValue || isNaN(answerValue)) return;
-            
-            formData.append('question_id', questionRealId); // استخدام ID الحقيقي
-            formData.append('answer_value', answerValue);
-            formData.append('question_type', 'numeric');
-        }
+      const currentQuestionElement = document.querySelector('.question-container:not(.hidden)');
+      if (!currentQuestionElement) return;
 
-        formData.append('csrfmiddlewaretoken', csrfToken);
+      const questionNumber = Number(currentQuestionElement.getAttribute('data-question'));
+      const questionRealId = currentQuestionElement.getAttribute('data-question-id');
+      const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
-        // Debugging
-        console.log('إرسال بيانات السؤال:', {
-            questionId: questionRealId,
-            questionType: questionType
-        });
+      let formData = new FormData();
+      if (questionType === 'objective') {
+        const selectedOption = currentQuestionElement.querySelector('input[type="radio"]:checked');
+        if (!selectedOption) return;
+        formData.append('question_id', questionRealId);
+        formData.append('answer_id', selectedOption.value);
+        formData.append('question_type', 'objective');
+      } else if (questionType === 'essay') {
+        const answerText = currentQuestionElement.querySelector('textarea')?.value || '';
+        if (!answerText.trim()) return;
+        formData.append('question_id', questionRealId);
+        formData.append('answer_text', answerText);
+        formData.append('question_type', 'essay');
+      } else if (questionType === 'numeric') {
+        const numericInput = currentQuestionElement.querySelector('input[type="number"]');
+        const answerValue = numericInput?.value;
+        if (answerValue === undefined || answerValue === '' || isNaN(Number(answerValue))) return;
+        formData.append('question_id', questionRealId);
+        formData.append('answer_value', answerValue);
+        formData.append('question_type', 'numeric');
+      }
+      formData.append('csrfmiddlewaretoken', csrfToken);
 
-        fetch('/student_app/student_exam/', {
-            method: 'POST',
-            body: formData,
-            headers: {'X-Requested-With': 'XMLHttpRequest'}
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                console.log('تم حفظ إجابة السؤال ID:', questionRealId);
-                updateQuestionStatus(currentQuestionElement.dataset.question);
-            }
-        })
-        .catch(error => console.error('Error:', error));
+      fetch('/student_app/student_exam/', {
+        method: 'POST',
+        body: formData,
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      })
+      .then(response => {
+        // نعتبر أي 200 نجاحاً، لأن السيرفر قد لا يعيد JSON
+        if (!response.ok) throw new Error('Network response was not ok');
+        updateQuestionStatus(questionNumber);
+        return null;
+      })
+      .catch(error => {
+        console.error('Save answer error:', error);
+      });
     }
 
     function updateQuestionStatus(questionNumber) {
-        const questionDot = document.getElementById(`dot-${questionNumber}`);
-        if (questionDot) {
-            questionDot.classList.remove('bg-red-500');
-            questionDot.classList.add('bg-green-500');
-        }
+      const questionDot = document.getElementById(`dot-${questionNumber}`);
+      const progress = document.getElementById(`progress-${questionNumber}`);
+      if (questionDot) {
+        questionDot.classList.remove('bg-red-500');
+        questionDot.classList.add('bg-green-500', 'text-white');
+      }
+      if (progress) {
+        progress.style.width = '100%';
+        progress.style.transition = 'width 0.7s cubic-bezier(0.65, 0, 0.35, 1)';
+      }
     }
 
-    
-
-        // للأسئلة الموضوعية
+    // ربط الأحداث
     document.querySelectorAll('input[type="radio"]').forEach(radio => {
-        radio.addEventListener('change', () => saveAnswer('objective'));
+      radio.addEventListener('change', () => {
+        saveAnswer('objective');
+        refreshAllSidebar();
+      });
     });
 
-    // للأسئلة المقالية
     document.querySelectorAll('textarea').forEach(textarea => {
-        let timeout;
-        textarea.addEventListener('input', () => {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => saveAnswer('essay'), 1000);
-        });
+      let timeout;
+      textarea.addEventListener('input', () => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+          saveAnswer('essay');
+          refreshAllSidebar();
+        }, 800);
+      });
     });
 
-    // للأسئلة العددية
     document.querySelectorAll('input[type="number"]').forEach(input => {
-        input.addEventListener('change', () => saveAnswer('numeric'));
+      input.addEventListener('change', () => {
+        saveAnswer('numeric');
+        refreshAllSidebar();
+      });
     });
 
-
-
-
+    // تهيئة أولية
+    toggleNavButtons();
+    refreshAllSidebar();
   });
 </script>
 {% endblock extra_js %}

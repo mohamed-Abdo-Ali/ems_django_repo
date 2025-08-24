@@ -246,10 +246,14 @@ class Student(models.Model):
         ]
     )
     
-    Batch = models.ForeignKey('admin_app.Batch', on_delete=models.CASCADE, 
+    Batch = models.ForeignKey(
+        'admin_app.Batch',
+        on_delete=models.CASCADE, 
             related_name='Batch', verbose_name="الدفعة")
     
-    Major = models.ForeignKey('admin_app.Major', on_delete=models.CASCADE, 
+    Major = models.ForeignKey(
+        'admin_app.Major', 
+        on_delete=models.CASCADE, 
             related_name='Major', verbose_name="التخصص")
     
     Semester = models.ForeignKey('admin_app.Semester', on_delete=models.CASCADE, 
@@ -372,5 +376,3 @@ def add_student_to_group(sender, instance, created, **kwargs):
         instance.user.groups.add(group)
         
         
-        
-

@@ -4,7 +4,7 @@
 # from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 # from .models import User, Profile, Student, BasicUser, Teacher, ControlCommitteeMember, Manager
 # from admin_app.models import Batch,Major
-# from authentcat_app.models import Semester
+# from admin_app.models import Semester
 # from django.contrib.auth import get_user_model
 
 # class StudentCreationForm(forms.ModelForm):
@@ -133,27 +133,118 @@
 
 
 
+# =============================================================================================================================
 
 
 
+
+
+# from django.contrib import admin
+
+# from authentcat_app.models import User,Student,BasicUser,Teacher,ControlCommitteeMember,Manager,Profile
+# from django.contrib.auth.models import  Permission,Group
+
+# # Register your models here.
+# admin.site.register(User)
+# admin.site.register(Student)
+# admin.site.register(BasicUser)
+# admin.site.register(Teacher)
+# admin.site.register(ControlCommitteeMember)
+# admin.site.register(Manager)
+# admin.site.register(Profile)
+# admin.site.register(Permission)
+
+
+
+# =============================================================================================================================
 
 
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth import get_user_model
+from django import forms
 
-# from authentcat_app.models import User,Student,BasicUser,Teacher,ControlCommitteeMember,Manager
-from authentcat_app.models import User,Student,BasicUser,Teacher,ControlCommitteeMember,Manager,Profile
-from django.contrib.auth.models import  Permission,Group
+from .models import (
+    User, Profile, Student, BasicUser, Teacher,
+    ControlCommitteeMember, Manager
+)
+from django.contrib.auth.models import Permission
 
-# Register your models here.
-admin.site.register(User)
+
+# ========================
+# Inline Models
+# ========================
+class ProfileInline(admin.StackedInline):
+    model = Profile
+    can_delete = False
+    verbose_name_plural = 'الملف الشخصي'
+    fk_name = 'user'
+
+
+class StudentInline(admin.StackedInline):
+    model = Student
+    can_delete = False
+    verbose_name_plural = 'بيانات الطالب'
+    fk_name = 'user'
+
+
+class BasicUserInline(admin.StackedInline):
+    model = BasicUser
+    can_delete = False
+    verbose_name_plural = 'بيانات المستخدم الأساسي'
+    fk_name = 'user'
+
+
+# ========================
+# User Admin
+# ========================
+class UserAdmin(BaseUserAdmin):
+    inlines = (ProfileInline,)
+
+    list_display = ('username', 'full_name', 'user_type', 'is_active', 'is_staff', 'is_superuser')
+    list_filter = ('user_type', 'is_active', 'is_staff', 'is_superuser')
+
+    fieldsets = (
+        (None, {'fields': ('username', 'password')}),
+        ('معلومات الشخصية', {'fields': ('full_name', 'gender', 'photo')}),
+        ('الصلاحيات', {'fields': ('is_active', 'is_staff', 'is_superuser', 'user_type', 'groups', 'user_permissions')}),
+        # ('تواريخ مهمة', {'fields': ('last_login', 'created_at', 'updated_at')}),
+    )
+
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('username', 'full_name', 'gender', 'photo', 'user_type', 'password1', 'password2'),
+        }),
+    )
+
+    search_fields = ('username', 'full_name')
+    ordering = ('username',)
+
+    def get_inline_instances(self, request, obj=None):
+        """إظهار الـ inlines المناسبة حسب نوع المستخدم"""
+        if not obj:
+            return []
+        inlines = super().get_inline_instances(request, obj)
+        if obj.is_student:
+            inlines.append(StudentInline(self.model, self.admin_site))
+        elif obj.is_basic:
+            inlines.append(BasicUserInline(self.model, self.admin_site))
+        return inlines
+
+
+# ========================
+# Register models
+# ========================
+User = get_user_model()
+admin.site.register(User, UserAdmin)
 admin.site.register(Student)
 admin.site.register(BasicUser)
 admin.site.register(Teacher)
 admin.site.register(ControlCommitteeMember)
 admin.site.register(Manager)
 admin.site.register(Profile)
-# admin.site.register(Semester)
 admin.site.register(Permission)
 
 
-
+# =============================================================================================================================

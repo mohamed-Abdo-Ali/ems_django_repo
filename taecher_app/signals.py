@@ -1,13 +1,15 @@
 from django.db.models.signals import post_save, post_delete, pre_save
 from django.db import transaction
 from django.dispatch import receiver
-from .models import (
-    ObjectiveQuestionAttempt,
-    StudentNumericAnswer,
-    StudentEssayAnswer,
-    EssayAnswerEvaluation,
-    StudentExamAttempt
-)
+
+
+from student_app.models import ObjectiveQuestionAttempt, StudentEssayAnswer, StudentExamAttempt, StudentNumericAnswer
+from .models import EssayAnswerEvaluation
+
+
+
+
+
 
 
 @receiver([post_save, post_delete], sender=ObjectiveQuestionAttempt)

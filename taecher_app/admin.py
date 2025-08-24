@@ -1,5 +1,8 @@
 from django.contrib import admin
-from .models import Answer, Exam, NumericQuestion,StudentExamAttendance,ExamStatusLog,Question,EssayQuestion,EssayAnswerEvaluation,StudentEssayAnswer,StudentExamAttempt,ObjectiveQuestionAttempt, StudentNumericAnswer
+
+from conttroll_app.models import ExamStatusLog, StudentExamAttendance
+from student_app.models import ObjectiveQuestionAttempt, StudentEssayAnswer, StudentExamAttempt, StudentNumericAnswer
+from .models import Answer, Exam, NumericQuestion,Question,EssayQuestion,EssayAnswerEvaluation
 
 # Register your models here.
 admin.site.register(Exam)

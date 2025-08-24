@@ -1,8 +1,8 @@
 from django.contrib import admin
-from .models import Department,Major,Batch,Level,CourseStructure,Course,CourseEnrollment,Semester
+from .models import Department,Major,Batch,Level,Course,Semester,AcademicYear
 
-
-
+from taecher_app.models import CourseStructure
+from conttroll_app.models import CourseEnrollment
 class Admin_panel_Department(admin.ModelAdmin) :
     list_display = ['name','code']
     
@@ -34,6 +34,7 @@ admin.site.register(Batch, Admin_panel_Batch)
 admin.site.register(Course, Admin_panel_Course)
 admin.site.register(CourseStructure, Admin_panel_CourseStructure)
 admin.site.register(CourseEnrollment, Admin_panel_CourseEnrollment)
+admin.site.register(AcademicYear)
 
 
 

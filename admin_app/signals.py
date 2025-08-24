@@ -3,7 +3,8 @@ from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 from django.contrib.admin.models import LogEntry, ADDITION, DELETION
 from django.contrib.contenttypes.models import ContentType
-from .models import Course, CourseEnrollment
+from .models import Course
+from conttroll_app.models import CourseEnrollment
 from authentcat_app.models import Student
 
 # 1. إشارة للتسجيل التلقائي عند إنشاء/تحديث المقرر

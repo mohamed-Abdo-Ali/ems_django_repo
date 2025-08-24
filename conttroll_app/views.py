@@ -1,6 +1,8 @@
 from django.shortcuts import render
-from .models import ExamScheduleView
+# from .models import ExamScheduleView
 from datetime import datetime
+
+from conttroll_app.models import ExamScheduleView
 
 # Create your views here.
 

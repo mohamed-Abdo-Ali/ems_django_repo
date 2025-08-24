@@ -4,7 +4,7 @@ from admin_app.models import Course
 from django.core.exceptions import ValidationError
 from datetime import datetime, timedelta
 from authentcat_app.models import User,Student
-from taecher_app.models import Exam
+# from taecher_app.models import Exam
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 
@@ -88,7 +88,7 @@ class ExamSchedule(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(
-        User,
+        "authentcat_app.controlcommitteemember",
         on_delete=models.SET_NULL,
         null=True,
         related_name='created_exam_schedules',
@@ -136,6 +136,131 @@ class ExamSchedule(models.Model):
     
 
 
+
+        
+# ========================== StudentExamAttendance table ===================================================================
+class StudentExamAttendance(models.Model):
+    class AttendanceStatus(models.IntegerChoices):
+        FIRST_ATTEMPT = 0, _('أول مرة')
+        RETAKE = 1, _('إعادة')
+    
+    student = models.ForeignKey(
+        'authentcat_app.Student',
+        on_delete=models.CASCADE,
+        related_name='exam_attendances',
+        verbose_name=_('الطالب')
+    )
+    exam = models.ForeignKey(
+        'taecher_app.Exam',
+        on_delete=models.CASCADE,
+        related_name='student_attendances',
+        verbose_name=_('الامتحان')
+    )
+    attendance_date = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name=_('تاريخ الحضور')
+    )
+    status = models.IntegerField(
+        choices=AttendanceStatus.choices,
+        default=AttendanceStatus.FIRST_ATTEMPT,
+        verbose_name=_('حالة الحضور')
+    )
+    score = models.PositiveIntegerField(
+        verbose_name=_('الدرجة'),
+        blank=True,
+        null=True
+    )
+    
+    class Meta:
+        verbose_name = _('حضور طالب للامتحان')
+        verbose_name_plural = _('حضور الطلاب للامتحانات')
+        unique_together = ('student', 'exam')  # كل طالب يمكن أن يحضر الامتحان مرة واحدة فقط
+    
+    def __str__(self):
+        return f"{self.student.user.username} - {self.exam.name}"
+
+
+
+
+
+# ========================== ExamStatusLog table ===================================================================
+class ExamStatusLog(models.Model):
+    class StatusChoices(models.IntegerChoices):
+        CREATED = 1, _('منشئ')
+        SENT_TO_CONTROL = 2, _('مرسل للكنترول')
+        RECEIVED_BY_CONTROL = 3, _('مستلم من الكنترول')
+        CANCELLED = 4, _('ملغي')
+    
+    exam = models.ForeignKey(
+        'taecher_app.Exam',
+        on_delete=models.CASCADE,
+        related_name='status_logs',
+        verbose_name=_('الامتحان')
+    )
+    status = models.IntegerField(
+        choices=StatusChoices.choices,
+        verbose_name=_('الحالة')
+    )
+    changed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='exam_status_changes',
+        verbose_name=_('تم التغيير بواسطة')
+    )
+    change_date = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name=_('تاريخ التغيير')
+    )
+    notes = models.TextField(
+        verbose_name=_('ملاحظات'),
+        blank=True,
+        null=True
+    )
+    
+    class Meta:
+        verbose_name = _('سجل حالة الامتحان')
+        verbose_name_plural = _('سجلات حالات الامتحانات')
+        ordering = ['-change_date']
+    
+    def __str__(self):
+        return f"{self.exam.name} - {self.get_status_display()}"
+    
+
+
+
+
+
+
+# ==================== CourseEnrollment table ==========================================================
+class CourseEnrollment(models.Model):
+    student = models.ForeignKey('authentcat_app.Student', on_delete=models.CASCADE, 
+                            related_name='enrollments', verbose_name="الطالب")
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, 
+                            related_name='enrollments', verbose_name="المقرر")
+    semester = models.ForeignKey('admin_app.Semester', on_delete=models.CASCADE, 
+                            related_name='enrollments', verbose_name="الفصل الدراسي")
+    enrollment_date = models.DateField(auto_now_add=True, verbose_name="تاريخ التسجيل")
+    is_repeat = models.BooleanField(default=False, verbose_name="إعادة تسجيل")
+    grade = models.CharField(max_length=2, blank=True, null=True, verbose_name="الدرجة")
+    
+    def __str__(self):
+        return f"{self.student.user.full_name} - {self.course} ({self.semester})"
+    
+    class Meta:
+        verbose_name = "تسجيل مقرر"
+        verbose_name_plural = "تسجيلات المقررات"
+        ordering = ['-enrollment_date']
+        constraints = [
+            models.UniqueConstraint(fields=['student', 'course', 'semester'], name='unique_enrollment')
+        ]
+        
+     
+
+
+
+
+
 # =========================== ExamScheduleView ========================================================
 class ExamScheduleView(models.Model):
     id = models.IntegerField(primary_key=True)
@@ -163,5 +288,37 @@ class ExamScheduleView(models.Model):
         # db_table = 'ems_view_exam_schedule'
         db_table = 'ems_view_exam_schedule'
 
+
+
+
+
+# =========================== Grade table ========================================================
+class Grade(models.Model):
+    student = models.ForeignKey(
+        "authentcat_app.Student", on_delete=models.CASCADE, related_name="grades"
+    )
+    course = models.ForeignKey(
+        "admin_app.Course", on_delete=models.CASCADE, related_name="grades"
+    )
+    academic_year = models.ForeignKey(
+        "admin_app.AcademicYear", on_delete=models.CASCADE, related_name="grades"
+    )
+    semester = models.ForeignKey(
+        "admin_app.Semester", on_delete=models.CASCADE, related_name="grades"
+    )
+    exam = models.ForeignKey(
+        "taecher_app.Exam", on_delete=models.CASCADE, related_name="grades"
+    )
+    marks_obtained = models.DecimalField(max_digits=5, decimal_places=2)  # الدرجة التي حصل عليها
+    total_marks = models.DecimalField(max_digits=5, decimal_places=2)     # الدرجة الكاملة
+    grade = models.CharField(max_length=5, blank=True, null=True)         # A, B, C ... (اختياري)
+
+    class Meta:
+        verbose_name = "الدرجة"
+        verbose_name_plural = "الدرجات"
+        unique_together = ("student", "course", "academic_year", "exam")
+
+    def __str__(self):
+        return f"{self.student} - {self.course} - {self.marks_obtained}/{self.total_marks}"
 
 

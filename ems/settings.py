@@ -38,8 +38,12 @@ ACCOUNT_EMAIL_REQUIRED = False  # إذا كنت تستخدم django-allauth
 # Application definition
 
 INSTALLED_APPS = [
+    #the app created by developer
     'jazzmin',
     'authentcat_app.apps.AuthentcatAppConfig',
+    # "admin_reorder",
+    # ^ the app created by developer^^
+
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -47,11 +51,11 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     #the app created by developer
-    'student_app.apps.StudentAppConfig',
-    'taecher_app.apps.TaecherAppConfig',
-    'conttroll_app.apps.ConttrollAppConfig',
     'admin_app.apps.AdminAppConfig',
+    'conttroll_app.apps.ConttrollAppConfig',
+    'taecher_app.apps.TaecherAppConfig',
     'core_app.apps.CoreAppConfig',
+    'student_app.apps.StudentAppConfig',
 ]
 
 
@@ -65,7 +69,27 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    
+    #the MIDDLEWARE created by developer
+    # "admin_reorder.middleware.ModelAdminReorder",  
+    
 ]
+
+
+# ADMIN_REORDER = [
+#     {
+#         'app': 'authentcat_app',
+#         'models': [
+#             'authentcat_app.user',
+#             'authentcat_app.basicuser',
+#             'authentcat_app.manager',
+#             'authentcat_app.controlcommitteemember',
+#             'authentcat_app.teacher',
+#             'authentcat_app.student',
+#             'authentcat_app.profile',
+#         ]
+#     },
+# ]
 
 
 
@@ -218,14 +242,6 @@ JAZZMIN_SETTINGS = {
     ],
     "show_sidebar": True,
     "navigation_expanded": True,
-    "order_with_respect_to": [
-        "api",
-        "api.Post",
-        "api.Category",
-        "api.Comment",
-        "api.Bookmark",
-        "api.Notification",
-    ],
     "icons": {
         "admin.LogEntry": "fas fa-file",
 
@@ -254,6 +270,61 @@ JAZZMIN_SETTINGS = {
         "auth.user": "collapsible",
         "auth.group": "vertical_tabs",
     },
+    
+    
+    
+    "order_with_respect_to": [
+        # admin_app
+        "admin_app",
+        "admin_app.Department",
+        "admin_app.Major",
+        "admin_app.Level",
+        "admin_app.Semester",
+        "admin_app.Batch",
+        "admin_app.Course",
+        "admin_app.AcademicYear",
+        
+        
+        
+        # authentcat_app
+        "authentcat_app",
+        "authentcat_app.User",
+        "authentcat_app.basicuser",
+        "authentcat_app.manager",
+        "authentcat_app.controlcommitteemember",
+        "authentcat_app.teacher",
+        "authentcat_app.student",
+        "authentcat_app.profile",
+        
+        # conttroll_app
+        "conttroll_app",
+        "conttroll_app.ExamSchedule",
+        "conttroll_app.ExamHall",
+        "conttroll_app.StudentExamAttendance",
+        "conttroll_app.ExamStatusLog",
+        "conttroll_app.CourseEnrollment",
+        "conttroll_app.Grade",
+        
+        # taecher_app
+        "taecher_app",
+        "taecher_app.CourseStructure",
+        "taecher_app.Exam",
+        "taecher_app.Question",
+        "taecher_app.Answer",
+        "taecher_app.EssayQuestion",
+        "taecher_app.EssayAnswerEvaluation",
+        "taecher_app.NumericQuestion",
+        
+        
+        # student_app
+        "student_app",
+        "student_app.StudentExamAttempt",
+        "student_app.StudentEssayAnswer",
+        "student_app.ObjectiveQuestionAttempt",
+        "student_app.StudentNumericAnswer",
+    ],
+
+
 }
 
 # Jazzmin Tweaks

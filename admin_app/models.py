@@ -46,7 +46,47 @@ class Major(models.Model):
 
 
 
-# # ==================== Batch table ==========================================================
+# ==================== Level table ==========================================================
+class Level(models.Model):
+    name = models.CharField(max_length=50, unique=True, verbose_name="اسم المستوى")
+    code = models.CharField(max_length=20, unique=True, verbose_name="كود المستوى")
+    order = models.PositiveSmallIntegerField(unique=True, verbose_name="ترتيب المستوى")
+    
+    def __str__(self):
+        return self.name
+    
+    class Meta:
+        verbose_name = "مستوى"
+        verbose_name_plural = "المستويات"
+        ordering = ['order']
+
+
+
+
+# ==================== Semester table ==========================================================
+class Semester(models.Model):
+    """جدول الفصول الدراسية"""
+
+    name = models.CharField(max_length=100, unique=True, verbose_name="اسم الفصل")
+    code = models.CharField(max_length=20, unique=True, verbose_name="كود الفصل")
+    level = models.ForeignKey(Level, on_delete=models.CASCADE,  related_name='semester' ,verbose_name="المستوى")
+    order = models.PositiveSmallIntegerField(unique=True,verbose_name="ترتيب الفصول الدراسية")
+
+    
+    def __str__(self):
+        return f"{self.name}"
+    
+    
+    class Meta:
+        verbose_name = "فصل دراسي"
+        verbose_name_plural = "الفصول الدراسية"
+        ordering = ['order']
+        
+
+
+
+
+# ==================== Batch table ==========================================================
 class Batch(models.Model):
     name = models.CharField(max_length=100, verbose_name="اسم الدفعة")
     enrollment_year = models.PositiveIntegerField(verbose_name="سنة القيد", editable=False)
@@ -88,42 +128,6 @@ class Batch(models.Model):
 
 
 
-# ==================== Level table ==========================================================
-class Level(models.Model):
-    name = models.CharField(max_length=50, unique=True, verbose_name="اسم المستوى")
-    code = models.CharField(max_length=20, unique=True, verbose_name="كود المستوى")
-    order = models.PositiveSmallIntegerField(unique=True, verbose_name="ترتيب المستوى")
-    
-    def __str__(self):
-        return self.name
-    
-    class Meta:
-        verbose_name = "مستوى"
-        verbose_name_plural = "المستويات"
-        ordering = ['order']
-
-
-
-
-# ==================== Semester table ==========================================================
-class Semester(models.Model):
-    """جدول الفصول الدراسية"""
-
-    name = models.CharField(max_length=100, unique=True, verbose_name="اسم الفصل")
-    code = models.CharField(max_length=20, unique=True, verbose_name="كود الفصل")
-    level = models.ForeignKey(Level, on_delete=models.CASCADE,  related_name='semester' ,verbose_name="المستوى")
-    order = models.PositiveSmallIntegerField(unique=True,verbose_name="ترتيب الفصول الدراسية")
-
-    
-    def __str__(self):
-        return f"{self.name}"
-    
-    
-    class Meta:
-        verbose_name = "فصل دراسي"
-        verbose_name_plural = "الفصول الدراسية"
-        ordering = ['order']
-        
 
 
 
@@ -167,46 +171,25 @@ class Course(models.Model):
             models.UniqueConstraint(fields=['name', 'major'], name='unique_course_name_per_major')
         ]
 
-# ==================== CourseStructure table ==========================================================
-class CourseStructure(models.Model):
-    final_exam_max = models.PositiveIntegerField(verbose_name="الدرجة العظمى للامتحان النهائي")
-    midterm_exam_max = models.PositiveIntegerField(default=0, blank=True, null=True, verbose_name="الدرجة العظمى للامتحان النصفي")
-    class_work_max = models.PositiveIntegerField(default=0, blank=True, null=True, verbose_name="الدرجة العظمى لأعمال الفصل")
-    structure = models.OneToOneField(Course, on_delete=models.CASCADE, related_name='course')
-    
-    def clean(self):
-        if self.structure.course_type == 1 and self.final_exam_max != 100:
-            raise ValidationError("المقرر النظري يجب أن يكون مجموعه 100 درجة")
-        elif self.structure.course_type == 2 and self.final_exam_max != 50:
-            raise ValidationError("المقرر العملي يجب أن يكون مجموعه 50 درجة")      
 
-        
 
+
+
+# ==================== class AcademicYear table ==========================================================
+class AcademicYear(models.Model):
+    name = models.CharField(max_length=20, unique=True)  
+    start_date = models.DateField()
+    end_date = models.DateField()
+    is_active = models.BooleanField(default=False)  # لتحديد السنة الحالية
 
     class Meta:
-        verbose_name = "هيكل المقرر"
-        verbose_name_plural = "هياكل المقررات"
-        
-        
-# ==================== CourseEnrollment table ==========================================================
-class CourseEnrollment(models.Model):
-    student = models.ForeignKey('authentcat_app.Student', on_delete=models.CASCADE, 
-                            related_name='enrollments', verbose_name="الطالب")
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, 
-                            related_name='enrollments', verbose_name="المقرر")
-    semester = models.ForeignKey(Semester, on_delete=models.CASCADE, 
-                            related_name='enrollments', verbose_name="الفصل الدراسي")
-    enrollment_date = models.DateField(auto_now_add=True, verbose_name="تاريخ التسجيل")
-    is_repeat = models.BooleanField(default=False, verbose_name="إعادة تسجيل")
-    grade = models.CharField(max_length=2, blank=True, null=True, verbose_name="الدرجة")
-    
+        verbose_name = "السنة الدراسية"
+        verbose_name_plural = "السنوات الدراسية"
+        ordering = ["-start_date"]
+
     def __str__(self):
-        return f"{self.student.user.full_name} - {self.course} ({self.semester})"
-    
-    class Meta:
-        verbose_name = "تسجيل مقرر"
-        verbose_name_plural = "تسجيلات المقررات"
-        ordering = ['-enrollment_date']
-        constraints = [
-            models.UniqueConstraint(fields=['student', 'course', 'semester'], name='unique_enrollment')
-        ]
+        return self.name
+
+
+
+

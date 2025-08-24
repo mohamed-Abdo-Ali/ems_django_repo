@@ -64,13 +64,14 @@
                                 بداء الاختبار
                             </button> 
                         </div>
-                        {% if messages %}
+                        <!-- {% if messages %}
                             {% for message in messages %}
                                 <div class="ml-3 flex-1">
                                     <p class="text-sm font-medium">{{ message }}</p>
                                 </div>
                             {% endfor %}
-                        {% endif %}
+                        {% endif %} -->
+                        {% include "../includes/messages.html" %}
                        
                     </form>
                 </div>
