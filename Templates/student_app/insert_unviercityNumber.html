@@ -38,6 +38,7 @@
                     class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="أدخل رقم البطاقة الجامعية"
                     required
+                    value="{{university_id}}"
                     pattern="[0-9]+"
                     title="يجب أن يحتوي على أرقام فقط">
                     
@@ -50,7 +51,10 @@
                         type="checkbox" 
                         id="attendance" 
                         name="form_attendace_statu"
-                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded ml-2">
+                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded ml-2"
+                        {% if attendace_statu == True %} checked {% endif %}
+                        >
+
                     <label for="attendance" class="text-gray-700">تسجيل الحضور</label>
                 </div>
                 
@@ -61,16 +65,8 @@
                     التالي
                 </button>
             </div>
-        </form>
-          <!-- {% if messages %}
-                {% for message in messages %}
-                    <div class="ml-3 flex-1">
-                        <p class="text-sm font-medium">{{ message }}</p>
-                    </div>
-                {% endfor %}
-            {% endif %} -->
-            {% include "../includes/messages.html" %}
-
-    </div>
+        </form>            
+        </div>
+    {% include "../includes/messages.html" %}
 </div>
 {% endblock %}

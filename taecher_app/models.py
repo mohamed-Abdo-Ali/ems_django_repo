@@ -133,12 +133,12 @@ class Question(models.Model):
         # NUMERIC = 2, _('عددي')
         MULTIPLE_CHOICE = 3, _('اختيار من متعدد')
         # ESSAY = 4, _('مقالي')
-    
-    title = models.CharField(
-        max_length=255,
-        verbose_name=_('عنوان السؤال'),
-        null=True,
-        blank= True
+
+    exam = models.ForeignKey(
+        Exam,
+        on_delete=models.CASCADE,
+        related_name='questions',
+        verbose_name=_('الامتحان')
     )
     text = models.TextField(
         verbose_name=_('نص السؤال')
@@ -150,12 +150,6 @@ class Question(models.Model):
     question_type = models.IntegerField(
         choices=QuestionTypes.choices,
         verbose_name=_('نوع السؤال')
-    )
-    exam = models.ForeignKey(
-        Exam,
-        on_delete=models.CASCADE,
-        related_name='questions',
-        verbose_name=_('الامتحان')
     )
     files = models.FileField(
         upload_to='question_files/',
@@ -172,7 +166,7 @@ class Question(models.Model):
         ordering = ['id']
     
     def __str__(self):
-        return f"{self.title} ({self.get_question_type_display()})"
+        return f"({self.get_question_type_display()})"
     
     def clean(self):
         # التحقق من أن مجموع درجات الأسئلة لا يتجاوز درجة الامتحان

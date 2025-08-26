@@ -6,8 +6,8 @@ from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import RegexValidator, MinLengthValidator, MaxLengthValidator
 from django.core.validators import RegexValidator
-# from admin_app.models import Semester
-
+from django.db.models.signals import post_migrate
+from django.apps import apps
 
 # ======================== user table ================================================================
 class User(AbstractUser):
@@ -376,3 +376,87 @@ def add_student_to_group(sender, instance, created, **kwargs):
         instance.user.groups.add(group)
         
         
+
+@receiver(post_save, sender=BasicUser)
+def set_basicuser_permissions(sender, instance, created, **kwargs):
+    if created:
+        user = instance.user
+        
+        # جميع المستخدمين الأساسيين يصبحوا موظفين staff
+        user.is_staff = True
+        
+        # إذا كان المدير Manager يصبح سوبر يوزر أيضًا
+        if instance.basic_user_type == BasicUser.UserTypes.MANAGER:
+            user.is_superuser = True
+        else:
+            user.is_superuser = False
+
+        user.save()
+
+
+
+
+@receiver(post_migrate)
+def setup_group_permissions(sender, **kwargs):
+    # إنشاء أو الحصول على مجموعة المعلمين
+    teachers_group, _ = Group.objects.get_or_create(name='Teachers')
+    
+    # الموديلات المستهدفة
+    models_to_grant = ['coursestructure', 'exam', 'question', 'answer', 'essayquestion', 'essayanswerevaluation', 'numericquestion']
+    
+    for model_name in models_to_grant:
+        model = apps.get_model('taecher_app', model_name)  # exam_app اسم التطبيق عندك غيّره حسب اسم التطبيق
+        permissions = Permission.objects.filter(content_type__app_label=model._meta.app_label,
+                                                content_type__model=model._meta.model_name)
+        # ربط الصلاحيات بالمجموعة
+        teachers_group.permissions.add(*permissions)
+
+
+
+
+@receiver(post_migrate)
+def setup_group_permissions(sender, **kwargs):
+    # إنشاء أو الحصول على مجموعة المعلمين
+    COMMITTEE_group, _ = Group.objects.get_or_create(name='Committee Members')
+    
+    # الموديلات المستهدفة
+    models_to_grant = ['Grade', 'CourseEnrollment', 'ExamStatusLog', 'StudentExamAttendance', 'ExamSchedule', 'ExamHall']
+    
+    for model_name in models_to_grant:
+        model = apps.get_model('conttroll_app', model_name)  # exam_app اسم التطبيق عندك غيّره حسب اسم التطبيق
+        permissions = Permission.objects.filter(content_type__app_label=model._meta.app_label,
+                                                content_type__model=model._meta.model_name)
+        # ربط الصلاحيات بالمجموعة
+        COMMITTEE_group.permissions.add(*permissions)
+
+
+
+
+@receiver(post_migrate)
+def setup_group_permissions(sender, **kwargs):
+    # إنشاء أو الحصول على مجموعة المعلمين
+    student_group, _ = Group.objects.get_or_create(name='Students')
+    
+    # الموديلات المستهدفة
+    models_to_grant = ['ObjectiveQuestionAttempt', 'StudentNumericAnswer', 'StudentEssayAnswer', 'StudentExamAttempt']
+    
+    for model_name in models_to_grant:
+        model = apps.get_model('student_app', model_name)  # exam_app اسم التطبيق عندك غيّره حسب اسم التطبيق
+        permissions = Permission.objects.filter(content_type__app_label=model._meta.app_label,
+                                                content_type__model=model._meta.model_name)
+        # ربط الصلاحيات بالمجموعة
+        student_group.permissions.add(*permissions)
+
+
+
+@receiver(post_migrate)
+def setup_manager_group_permissions(sender, **kwargs):
+    # إنشاء أو الحصول على مجموعة المديرين
+    manager_group, _ = Group.objects.get_or_create(name='Managers')
+
+    # جلب جميع الصلاحيات في النظام
+    all_permissions = Permission.objects.all()
+
+    # ربط كل الصلاحيات بالمجموعة
+    manager_group.permissions.set(all_permissions)
+

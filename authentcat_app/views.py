@@ -1,7 +1,6 @@
 from django.contrib import auth  
 from io import BytesIO
 import re
-
 from admin_app.models import Batch, Course, Major,Level,User,Semester
 from .models import BasicUser, ControlCommitteeMember, Profile,Student, Teacher,User,Manager
 from django.shortcuts import get_object_or_404, redirect, render
@@ -24,6 +23,7 @@ from django.contrib.auth.decorators import login_required
 
 # ============================ login function viwe ===============================================
 def sign_in(request):
+    
     if request.method == 'POST' and 'login_button_template' in request.POST:
         username = request.POST.get('username', '').strip()
         password = request.POST.get('password', '').strip()
@@ -297,9 +297,17 @@ def insert_phoneEmail(request):
 
 def logout_fun(request):
     if request.user.is_authenticated:
+        connected_user = request.user  
         auth.logout(request)
-        messages.success(request, 'تم تسجيل الخروج بنجاح')
+
+        if connected_user.is_student:
+            messages.success(
+                request,
+                f"تم تسجيل خروج المستخدم {connected_user.username} من نوع  {connected_user.get_user_type_display()} بنجاح"
+            )
+
     return redirect('authentcat_app:sign_in')
+
 
 
 

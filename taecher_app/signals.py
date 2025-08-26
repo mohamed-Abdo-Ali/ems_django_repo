@@ -96,3 +96,31 @@ def enforce_objective_attempts_limit(sender, instance, **kwargs):
             
             if attempts.count() >= MAX_ATTEMPTS:
                 attempts.first().delete()  # حذف أقدم محاولة
+                
+                
+                
+                
+  
+@receiver(pre_save, sender=StudentNumericAnswer)
+def enforce_numeric_attempts_limit(sender, instance, **kwargs):
+    """
+    التحكم في عدد المحاولات للإجابات العددية (الحد الأقصى 5 محاولات لكل سؤال)
+    مع حذف المحاولة القديمة لنفس السؤال إذا وصل الحد الأقصى
+    """
+    if not instance.pk:  # فقط للمحاولات الجديدة
+        with transaction.atomic():
+            student = instance.exam_attempt.attendance.student
+            question = instance.question
+
+            # الحصول على محاولات الطالب لنفس السؤال فقط
+            attempts = StudentNumericAnswer.objects.filter(
+                question=question,
+                exam_attempt__attendance__student=student
+            ).order_by('submitted_at')  # نرتب حسب وقت التسليم
+
+            # إذا وصل الطالب للحد الأقصى للمحاولات لهذا السؤال
+            if attempts.count() >= MAX_ATTEMPTS:
+                # أقدم محاولة لهذا السؤال
+                oldest_attempt = attempts.first()
+                # حذف المحاولة القديمة
+                oldest_attempt.delete()

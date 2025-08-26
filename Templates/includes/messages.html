@@ -1,157 +1,118 @@
-<!-- templates/includes/messages.html -->
 {% if messages %}
-<div id="messages-container" class="fixed bottom-4 left-2/2 transform -translate-x-1/2 z-50 w-full max-w-md px-4 space-y-2">
+<div id="messages-container"
+    class="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 flex justify-center w-full max-w-md px-4 pointer-events-none">
+  <div class="w-full max-w-md space-y-2">
     {% for message in messages %}
-    <div 
-        id="message-{{ forloop.counter }}" 
-        class="message-item relative flex items-center p-4 rounded-lg shadow-xl cursor-pointer transition-all duration-300 hover:scale-[1.02] active:scale-95
-            {% if message.tags == 'success' %}bg-emerald-50 text-emerald-800 border border-emerald-200
-            {% elif message.tags == 'error' %}bg-rose-50 text-rose-800 border border-rose-200
-            {% elif message.tags == 'warning' %}bg-amber-50 text-amber-800 border border-amber-200
-            {% else %}bg-sky-50 text-sky-800 border border-sky-200{% endif %}"
-        onclick="dismissMessage('message-{{ forloop.counter }}')"
+    <div
+      id="message-{{ forloop.counter }}"
+      class="message-item w-full pointer-events-auto relative flex items-center p-4 rounded-lg shadow-xl cursor-pointer transition-all duration-300 hover:scale-[1.02] active:scale-95
+        {% if 'success' in message.tags %}bg-emerald-50 text-emerald-800 border border-emerald-200
+        {% elif 'error' in message.tags %}bg-rose-50 text-rose-800 border border-rose-200
+        {% elif 'warning' in message.tags %}bg-amber-50 text-amber-800 border border-amber-200
+        {% else %}bg-sky-50 text-sky-800 border border-sky-200{% endif %}"
+      onclick="dismissMessage('message-{{ forloop.counter }}')"
+      role="{% if 'error' in message.tags or 'warning' in message.tags %}alert{% else %}status{% endif %}"
+      aria-live="{% if 'error' in message.tags or 'warning' in message.tags %}assertive{% else %}polite{% endif %}"
+      aria-atomic="true"
+      style="--toast-duration: 3s;"
+      data-duration="3000"
     >
-        <!-- أيقونة -->
-        <div class="flex-shrink-0">
-            {% if message.tags == 'success' %}
-            <svg class="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            {% elif message.tags == 'error' %}
-            <svg class="w-6 h-6 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            {% elif message.tags == 'warning' %}
-            <svg class="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            {% else %}
-            <svg class="w-6 h-6 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            {% endif %}
-        </div>
+      <!-- أيقونة -->
+      <div class="flex-shrink-0">
+        {% if 'success' in message.tags %}
+        <svg aria-hidden="true" class="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        {% elif 'error' in message.tags %}
+        <svg aria-hidden="true" class="w-6 h-6 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        {% elif 'warning' in message.tags %}
+        <svg aria-hidden="true" class="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        {% else %}
+        <svg aria-hidden="true" class="w-6 h-6 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        {% endif %}
+      </div>
 
-        <!-- نص الرسالة -->
-        <div class="ml-3 flex-1">
-            <p class="text-sm font-medium">{{ message }}</p>
-        </div>
+      <!-- نص الرسالة -->
+      <div class="ml-3 flex-1">
+        <p class="text-sm font-medium">{{ message }}</p>
+      </div>
 
-        <!-- زر الإغلاق -->
-        <button class="ml-2 flex-shrink-0 text-gray-400 hover:text-gray-500 focus:outline-none">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-        </button>
+      <!-- زر الإغلاق -->
+      <button
+        type="button"
+        class="ml-2 flex-shrink-0 text-gray-400 hover:text-gray-500 focus:outline-none"
+        aria-label="إغلاق"
+        onclick="event.stopPropagation(); dismissMessage('message-{{ forloop.counter }}')">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
 
-        <!-- شريط التقدم -->
-        <div class="absolute bottom-0 left-0 right-0 h-1 bg-current opacity-10 rounded-b-lg">
-            <div class="progress-bar h-full rounded-b-lg 
-                {% if message.tags == 'success' %}bg-emerald-500
-                {% elif message.tags == 'error' %}bg-rose-500
-                {% elif message.tags == 'warning' %}bg-amber-500
-                {% else %}bg-sky-500{% endif %}"
-                style="width: 100%"></div>
-        </div>
+      <!-- شريط التقدم -->
+      <div class="absolute bottom-0 left-0 right-0 h-1 bg-current/10 rounded-b-lg" aria-hidden="true">
+        <div class="progress-bar h-full rounded-b-lg
+          {% if 'success' in message.tags %}bg-emerald-500
+          {% elif 'error' in message.tags %}bg-rose-500
+          {% elif 'warning' in message.tags %}bg-amber-500
+          {% else %}bg-sky-500{% endif %}"
+          style="animation: shrinkBar var(--toast-duration) linear forwards;"></div>
+      </div>
     </div>
     {% endfor %}
+  </div>
 </div>
 
 <style>
-    /* حركات الرسائل */
-    .message-item {
-        animation: slideInUp 0.3s ease-out forwards;
-        transform: translateX(-50%);
-    }
-    
-    @keyframes slideInUp {
-        from { transform: translateY(20px) translateX(-50%); opacity: 0; }
-        to { transform: translateY(0) translateX(-50%); opacity: 1; }
-    }
-    
-    @keyframes fadeOutDown {
-        from { transform: translateY(0) translateX(-50%); opacity: 1; }
-        to { transform: translateY(20px) translateX(-50%); opacity: 0; }
-    }
-    
-    /* تحسينات للشريط التقدمي */
-    .progress-bar {
-        transition: width 5s linear;
-    }
-    
-    .message-item:hover .progress-bar {
-        animation-play-state: paused;
-    }
+  .message-item { animation: slideInUp 0.25s ease-out both; }
+  @keyframes slideInUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  @keyframes fadeOutDown { from { transform: translateY(0); opacity: 1; } to { transform: translateY(20px); opacity: 0; } }
+  @keyframes shrinkBar { from { width: 100%; } to { width: 0%; } }
 </style>
 
 <script>
-// دالة لإخفاء الرسالة بسلاسة
-function dismissMessage(id) {
-    const message = document.getElementById(id);
-    if (message) {
-        message.style.animation = 'fadeOutDown 0.3s ease-out forwards';
-        setTimeout(() => {
-            message.remove();
-            // إعادة ترتيب الرسائل المتبقية إذا لزم الأمر
-            arrangeMessages();
-        }, 300);
-    }
-}
+  function dismissMessage(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.animation = 'fadeOutDown 0.25s ease-out forwards';
+    setTimeout(() => el.remove(), 250);
+  }
 
-// دالة لبدء العد التنازلي للرسائل
-function startMessageTimers() {
-    document.querySelectorAll('.message-item').forEach(message => {
-        const id = message.id;
-        const progressBar = message.querySelector('.progress-bar');
-        
-        // إخفاء تلقائي بعد 5 ثواني
-        const timer = setTimeout(() => {
-            dismissMessage(id);
-        }, 3000);
-        
-        // تتبع الوقت عند hover
-        message.addEventListener('mouseenter', () => {
-            clearTimeout(timer);
-            progressBar.style.animationPlayState = 'paused';
-        });
-        
-        message.addEventListener('mouseleave', () => {
-            const remainingWidth = parseFloat(progressBar.style.width);
-            const remainingTime = (remainingWidth / 100) * 5000;
-            
-            setTimeout(() => {
-                dismissMessage(id);
-            }, remainingTime);
-            
-            progressBar.style.animationPlayState = 'running';
-        });
+  function initToast(el) {
+    const duration = Number(el.dataset.duration || 3000);
+    const bar = el.querySelector('.progress-bar');
+    let remaining = duration;
+    let start = performance.now();
+    let rafId;
+
+    const step = (ts) => {
+      const elapsed = ts - start;
+      if (elapsed >= remaining) { dismissMessage(el.id); return; }
+      rafId = requestAnimationFrame(step);
+    };
+
+    rafId = requestAnimationFrame(step);
+
+    el.addEventListener('mouseenter', () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      remaining -= performance.now() - start;
+      if (bar) bar.style.animationPlayState = 'paused';
     });
-}
 
-// دالة لترتيب الرسائل المتبقية
-function arrangeMessages() {
-    const container = document.getElementById('messages-container');
-    if (container) {
-        const messages = container.querySelectorAll('.message-item');
-        messages.forEach((msg, index) => {
-            msg.style.marginBottom = index < messages.length - 1 ? '0.5rem' : '0';
-        });
-    }
-}
+    el.addEventListener('mouseleave', () => {
+      start = performance.now();
+      rafId = requestAnimationFrame(step);
+      if (bar) bar.style.animationPlayState = 'running';
+    });
+  }
 
-// بدء التشغيل عند تحميل الصفحة
-document.addEventListener('DOMContentLoaded', () => {
-    startMessageTimers();
-    
-    // تحديث شريط التقدم
-    setInterval(() => {
-        document.querySelectorAll('.progress-bar').forEach(bar => {
-            const currentWidth = parseFloat(bar.style.width);
-            if (currentWidth > 0) {
-                bar.style.width = (currentWidth - 0.1) + '%';
-            }
-        });
-    }, 50);
-});
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.message-item').forEach(initToast);
+  });
 </script>
 {% endif %}

@@ -43,7 +43,8 @@
               {% endif %}
             </p>
             <div class="timer text-sm md:text-xl font-bold bg-blue-800 px-2 md:px-4 py-1 md:py-2 rounded-lg inline-block">
-              <span id="time">01:59:00</span>
+              <span id="time">01:59:00</span><br>
+              <!-- <span>{{first_exam.duration}}</span> -->
             </div>
           </div>
         </div>
@@ -111,10 +112,12 @@
                 <div class="transition-all duration-200 hover:-translate-x-1">
                   <input
                     type="radio"
+                    
                     name="question_{{ question.id }}"
                     id="q{{ question.id }}_option{{ forloop.counter }}"
                     value="{{ answer.id }}"
                     class="hidden peer"
+                    
                   />
                   <label
                     for="q{{ question.id }}_option{{ forloop.counter }}"
@@ -139,6 +142,19 @@
                 <div class="mt-2 text-xs text-gray-500">
                   <p>ملاحظة: تأكد من مراجعة إجابتك قبل التسليم.</p>
                 </div>
+
+                <!-- زر الحفظ + رسالة النجاح -->
+                <button
+                  type="button"
+                  class="mt-2 bg-blue-600 text-white px-4 py-2 rounded save-answer-btn"
+                  data-question-id="{{ question.id }}"
+                  data-type="essay"
+                >
+                  حفظ
+                </button>
+                <div id="snackbar-{{ forloop.counter }}" class="hidden mt-2 text-green-600 text-sm">
+                  ✅ تم الحفظ بنجاح
+                </div>
               </div>
 
               {% elif question|is_numeric_question %}
@@ -151,9 +167,24 @@
                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800"
                   placeholder="أدخل الإجابة الرقمية هنا"
                   step="any"
+                  oninput="this.value = this.value.replace(/[^0-9.]/g,'')"
+                  pattern="[0-9]*"
                 />
                 <div class="mt-2 text-xs text-gray-500">
                   <p>ملاحظة: أدخل الرقم فقط دون أي رموز أو أحرف أخرى.</p>
+                </div>
+
+                <!-- زر الحفظ + رسالة النجاح -->
+                <button
+                  type="button"
+                  class="mt-2 bg-blue-600 text-white px-4 py-2 rounded save-answer-btn"
+                  data-question-id="{{ question.id }}"
+                  data-type="numeric"
+                >
+                  حفظ
+                </button>
+                <div id="snackbar-{{ forloop.counter }}" class="hidden mt-2 text-green-600 text-sm">
+                  ✅ تم الحفظ بنجاح
                 </div>
               </div>
               {% endif %}
@@ -294,7 +325,6 @@
     input[type=number] {
         -moz-appearance: textfield;
     }
-
   </style>
 </div>
 
@@ -308,7 +338,9 @@
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     // إعدادات عامة
-    let timeLeft = 119 * 60; // بالثواني
+    let examDurationHours = {{ first_exam.duration }};
+    let timeLeft = examDurationHours * 60 * 60;
+
     const timerElement = document.getElementById('time');
     const progressBar = document.getElementById('progress-bar');
     const form = document.getElementById('exam-form');
@@ -330,7 +362,7 @@
     let isSubmitting = false;
     let lastSubmitter = null;
 
-    // مؤقت
+    // المؤقت
     function updateTimer() {
       const hours = Math.floor(timeLeft / 3600);
       const minutes = Math.floor((timeLeft % 3600) / 60);
@@ -343,7 +375,6 @@
 
       if (timeLeft <= 0) {
         clearInterval(timerInterval);
-        // إضافة حقول تمييز انتهاء الوقت وإكمال الإرسال
         const timeUp = document.createElement('input');
         timeUp.type = 'hidden';
         timeUp.name = 'time_up';
@@ -356,7 +387,7 @@
         finishFlag.value = '1';
         form.appendChild(finishFlag);
 
-        form.submit(); // إرسال برمجي (لن يضمّن زر)، لكن الحقول المخفية تكفي
+        form.submit();
         return;
       } else {
         timeLeft--;
@@ -382,26 +413,29 @@
       progressBar.style.width = `${progressPercent}%`;
     }
 
+    // التحقق من إجابة سؤال معيّن (ضمن حاوية السؤال فقط)
     function isAnswered(questionNum) {
-      // الحصول على ID الحقيقي للسؤال من النقطة الجانبية
-      const dot = document.getElementById(`dot-${questionNum}`);
-      if (!dot) return false;
-      const qId = dot.getAttribute('data-question-id');
-      if (!qId) return false;
+      const container = document.getElementById(`question-${questionNum}`);
+      if (!container) return false;
 
-      // تحقق من كل نوع
-      const obj = document.querySelector(`input[name="question_${qId}"]:checked`);
-      if (obj) return true;
+      // اختياري
+      if (container.querySelector('input[type="radio"]:checked')) return true;
 
-      const essay = document.querySelector(`textarea[name="essay_answer_${qId}"]`);
+      // مقالي
+      const essay = container.querySelector('textarea[name^="essay_answer_"]');
       if (essay && essay.value.trim().length > 0) return true;
 
-      const numeric = document.querySelector(`input[name="numeric_answer_${qId}"]`);
-      if (numeric && numeric.value !== '' && !isNaN(Number(numeric.value))) return true;
+      // عددي
+      const numeric = container.querySelector('input[type="number"][name^="numeric_answer_"]');
+      if (numeric) {
+        const v = (numeric.value ?? '').toString().trim();
+        if (v !== '' && !isNaN(parseFloat(v))) return true;
+      }
 
       return false;
     }
 
+    // تحديث حالة نقطة السؤال في الشريط الجانبي
     function updateSidebarStatus(questionNum) {
       const dot = document.getElementById(`dot-${questionNum}`);
       const progress = document.getElementById(`progress-${questionNum}`);
@@ -411,11 +445,11 @@
       const redClasses = ['bg-red-500', 'text-white'];
       const greenClasses = ['bg-green-500', 'text-white'];
 
-      // الحالة الحالية
       const answered = isAnswered(questionNum);
 
-      // صبغ النقطة
+      // تنظيف الألوان السابقة
       dot.classList.remove(...activeClasses, ...redClasses, ...greenClasses);
+
       if (questionNum === currentQuestion) {
         dot.classList.add(...activeClasses);
       } else if (answered) {
@@ -424,26 +458,25 @@
         dot.classList.add(...redClasses);
       }
 
-      // تقدم الشريط داخل العنصر الجانبي
       if (progress) {
         progress.style.width = answered ? '100%' : '0%';
         progress.style.transition = 'width 0.7s cubic-bezier(0.65, 0, 0.35, 1)';
       }
     }
 
+    // تحديث جميع النقاط (للاستخدام عند التحميل أو الانتقال فقط)
     function refreshAllSidebar() {
       for (let i = 1; i <= totalQuestions; i++) {
         updateSidebarStatus(i);
       }
     }
 
+    // الانتقال لسؤال محدد
     window.goToQuestion = function (questionNum) {
-      // إخفاء الكل
       document.querySelectorAll('.question-container').forEach(q => {
         q.classList.add('hidden');
         q.classList.remove('block');
       });
-      // إظهار المطلوب
       const target = document.getElementById(`question-${questionNum}`);
       if (target) {
         target.classList.remove('hidden');
@@ -477,29 +510,23 @@
       setTimeout(() => modal.classList.add('hidden'), 180);
     }
 
-    // التقاط الزر المُرسل
     form.addEventListener('submit', function (e) {
-      if (isSubmitting) return; // السماح بالإرسال الثاني
+      if (isSubmitting) return;
       lastSubmitter = e.submitter || null;
       if (typeof timeLeft !== 'undefined' && timeLeft > 0) {
-        e.preventDefault(); // أوقف الإرسال لعرض المودال
+        e.preventDefault();
         openModal();
       }
-      // إذا timeLeft <= 0 لن يُمنع الإرسال (في حالة إرسال برمجي عند انتهاء الوقت)
     });
 
-    // تأكيد إنهاء الامتحان
     confirmBtn.addEventListener('click', function () {
       isSubmitting = true;
       closeModal();
-
-      // إرسال يحافظ على اسم وقيمة زر الإرسال
       if (form.requestSubmit && lastSubmitter) {
         form.requestSubmit(lastSubmitter);
       } else if (lastSubmitter) {
         lastSubmitter.click();
       } else {
-        // احتياطي: حقن حقل مخفي لضمان تحقق السيرفر
         const hidden = document.createElement('input');
         hidden.type = 'hidden';
         hidden.name = 'finsh_submet_exam_butt';
@@ -516,27 +543,29 @@
     });
 
     // حفظ الإجابات (AJAX)
-    function saveAnswer(questionType) {
-      const currentQuestionElement = document.querySelector('.question-container:not(.hidden)');
+    function saveAnswer(questionType, container) {
+      const currentQuestionElement = container || document.querySelector('.question-container:not(.hidden)');
       if (!currentQuestionElement) return;
 
-      const questionNumber = Number(currentQuestionElement.getAttribute('data-question'));
       const questionRealId = currentQuestionElement.getAttribute('data-question-id');
       const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
       let formData = new FormData();
+
       if (questionType === 'objective') {
         const selectedOption = currentQuestionElement.querySelector('input[type="radio"]:checked');
         if (!selectedOption) return;
         formData.append('question_id', questionRealId);
         formData.append('answer_id', selectedOption.value);
         formData.append('question_type', 'objective');
+
       } else if (questionType === 'essay') {
         const answerText = currentQuestionElement.querySelector('textarea')?.value || '';
         if (!answerText.trim()) return;
         formData.append('question_id', questionRealId);
         formData.append('answer_text', answerText);
         formData.append('question_type', 'essay');
+
       } else if (questionType === 'numeric') {
         const numericInput = currentQuestionElement.querySelector('input[type="number"]');
         const answerValue = numericInput?.value;
@@ -545,60 +574,79 @@
         formData.append('answer_value', answerValue);
         formData.append('question_type', 'numeric');
       }
+
       formData.append('csrfmiddlewaretoken', csrfToken);
 
-      fetch('/student_app/student_exam/', {
+      return fetch('/student_app/student_exam/', {
         method: 'POST',
         body: formData,
         headers: { 'X-Requested-With': 'XMLHttpRequest' }
       })
       .then(response => {
-        // نعتبر أي 200 نجاحاً، لأن السيرفر قد لا يعيد JSON
         if (!response.ok) throw new Error('Network response was not ok');
-        updateQuestionStatus(questionNumber);
-        return null;
-      })
-      .catch(error => {
-        console.error('Save answer error:', error);
+        return true;
       });
     }
 
-    function updateQuestionStatus(questionNumber) {
-      const questionDot = document.getElementById(`dot-${questionNumber}`);
-      const progress = document.getElementById(`progress-${questionNumber}`);
-      if (questionDot) {
-        questionDot.classList.remove('bg-red-500');
-        questionDot.classList.add('bg-green-500', 'text-white');
-      }
-      if (progress) {
-        progress.style.width = '100%';
-        progress.style.transition = 'width 0.7s cubic-bezier(0.65, 0, 0.35, 1)';
-      }
+    // رسالة نجاح/فشل داخل حاوية السؤال فقط
+    function showSnackbar(container, isError = false) {
+      const el = container.querySelector('[id^="snackbar-"]');
+      if (!el) return;
+      el.textContent = isError ? '❌ حدث خطأ أثناء الحفظ' : '✅ تم الحفظ بنجاح';
+      el.classList.remove('hidden');
+      el.classList.toggle('text-green-600', !isError);
+      el.classList.toggle('text-red-600', isError);
+      setTimeout(() => {
+        el.classList.add('hidden');
+      }, 1500);
     }
 
-    // ربط الأحداث
+    // اختيارات (اختياري)
     document.querySelectorAll('input[type="radio"]').forEach(radio => {
       radio.addEventListener('change', () => {
-        saveAnswer('objective');
-        refreshAllSidebar();
+        const container = radio.closest('.question-container');
+        const qNum = Number(container?.getAttribute('data-question')) || currentQuestion;
+        const p = saveAnswer('objective', container);
+        // حدّث نقطة السؤال الحالي فقط
+        if (p && typeof p.then === 'function') {
+          p.finally(() => updateSidebarStatus(qNum));
+        } else {
+          updateSidebarStatus(qNum);
+        }
       });
     });
 
-    document.querySelectorAll('textarea').forEach(textarea => {
-      let timeout;
-      textarea.addEventListener('input', () => {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => {
-          saveAnswer('essay');
-          refreshAllSidebar();
-        }, 800);
-      });
-    });
+    // أزرار الحفظ (مقالي/عددي)
+    document.querySelectorAll('.save-answer-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const container = btn.closest('.question-container');
+        const type = btn.getAttribute('data-type'); // essay | numeric
+        const qNum = Number(container?.getAttribute('data-question')) || currentQuestion;
 
-    document.querySelectorAll('input[type="number"]').forEach(input => {
-      input.addEventListener('change', () => {
-        saveAnswer('numeric');
-        refreshAllSidebar();
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = '... جاري الحفظ';
+
+        const promise = saveAnswer(type, container);
+        if (!promise) {
+          // لا يوجد إدخال صالح للحفظ
+          btn.disabled = false;
+          btn.textContent = originalText;
+          return;
+        }
+
+        promise
+          .then(() => {
+            showSnackbar(container, false);
+            updateSidebarStatus(qNum); // حدّث السؤال الحالي فقط
+          })
+          .catch(() => {
+            showSnackbar(container, true);
+          })
+          .finally(() => {
+            btn.disabled = false;
+            btn.textContent = originalText;
+          });
       });
     });
 
