@@ -1,0 +1,50 @@
+/* إخفاء العناصر عبر كلاس يتم التحكّم به من خلال JS */
+.mcq-hidden {
+  display: none !important;
+}
+
+/* حاوية تجعل الحقل والأيقونة في سطر واحد */
+.mcq-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;            /* مسافة بين الحقل والزر */
+}
+
+/* اجعل الحقل يتمدد ويأخذ بقية العرض */
+.mcq-inline > input,
+.mcq-inline > textarea,
+.mcq-inline > .vTextField {
+  flex: 1;
+  min-width: 0;
+}
+
+/* زر إضافة خيار */
+.mcq-add-btn {
+  margin-top: 6px;
+}
+
+/* زر حذف خيار (أيقونة صغيرة بجانب الحقل) */
+.mcq-del-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-inline-start: 8px; /* يظهر يسار الحقل في RTL */
+  padding: 2px 6px;
+  line-height: 1;
+  font-size: 12px;
+}
+
+/* حجم الأيقونة */
+.mcq-icon {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;    /* ترث لون الزر */
+}
+
+/* ملاحظة الحد الأقصى */
+.mcq-note {
+  margin-top: 6px;
+  color: #6c757d;      /* رمادي لطيف */
+  font-size: 12px;
+  display: none;       /* تُظهر عبر JS عند الوصول للحد الأقصى */
+}

@@ -1,14 +1,17 @@
 from django.utils.translation import gettext_lazy as _  
 from django.db import models
-from admin_app.models import Course
 from django.core.exceptions import ValidationError
-from datetime import datetime, timedelta
-from authentcat_app.models import User,Student
-# from taecher_app.models import Exam
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Q
+from datetime import timedelta
+from authentcat_app.models import User
+from decimal import Decimal
+from student_app.models import StudentExamAttempt
+from taecher_app.models import Exam, CourseStructure
 
-# Create your models here.
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+
 
 
 # ========================== ExamHall table =========================================================
@@ -69,7 +72,7 @@ class ExamHall(models.Model):
 # ========================== ExamSchedule table =========================================================
 class ExamSchedule(models.Model):
     course = models.OneToOneField(
-        Course,
+        'admin_app.Course',
         on_delete=models.CASCADE,
         related_name='exam_schedule',
         verbose_name=_('المقرر الدراسي')
@@ -122,6 +125,7 @@ class ExamSchedule(models.Model):
         if conflicting_exams.exists():
             raise ValidationError(_('هناك تعارض في الجدول مع امتحان آخر في نفس القاعة  و في نفس الوقت'))
 
+
     @property
     def duration(self):
         """حساب مدة الامتحان بالساعات والدقائق"""
@@ -145,7 +149,7 @@ class StudentExamAttendance(models.Model):
         RETAKE = 1, _('إعادة')
     
     student = models.ForeignKey(
-        'authentcat_app.Student',
+        'conttroll_app.student_report_from_uivercity',
         on_delete=models.CASCADE,
         related_name='exam_attendances',
         verbose_name=_('الطالب')
@@ -177,7 +181,7 @@ class StudentExamAttendance(models.Model):
         unique_together = ('student', 'exam')  # كل طالب يمكن أن يحضر الامتحان مرة واحدة فقط
     
     def __str__(self):
-        return f"{self.student.user.username} - {self.exam.name}"
+        return f" {self.exam.name}"
 
 
 
@@ -232,93 +236,166 @@ class ExamStatusLog(models.Model):
 
 
 
-# ==================== CourseEnrollment table ==========================================================
-class CourseEnrollment(models.Model):
-    student = models.ForeignKey('authentcat_app.Student', on_delete=models.CASCADE, 
-                            related_name='enrollments', verbose_name="الطالب")
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, 
-                            related_name='enrollments', verbose_name="المقرر")
-    semester = models.ForeignKey('admin_app.Semester', on_delete=models.CASCADE, 
-                            related_name='enrollments', verbose_name="الفصل الدراسي")
-    enrollment_date = models.DateField(auto_now_add=True, verbose_name="تاريخ التسجيل")
-    is_repeat = models.BooleanField(default=False, verbose_name="إعادة تسجيل")
-    grade = models.CharField(max_length=2, blank=True, null=True, verbose_name="الدرجة")
-    
-    def __str__(self):
-        return f"{self.student.user.full_name} - {self.course} ({self.semester})"
-    
-    class Meta:
-        verbose_name = "تسجيل مقرر"
-        verbose_name_plural = "تسجيلات المقررات"
-        ordering = ['-enrollment_date']
-        constraints = [
-            models.UniqueConstraint(fields=['student', 'course', 'semester'], name='unique_enrollment')
-        ]
-        
-     
-
-
-
-
-
 # =========================== ExamScheduleView ========================================================
 class ExamScheduleView(models.Model):
-    id = models.IntegerField(primary_key=True)
-    course_id = models.IntegerField()
+    id = models.BigIntegerField(primary_key=True)
+    course_id = models.BigIntegerField()
     course_name = models.CharField(max_length=100)
-    course_type = models.CharField(max_length=50)
-    exam_id = models.IntegerField()
+    course_type = models.CharField(max_length=50)  # Theoretical/Practical/Undefined
+    exam_id = models.BigIntegerField()
     exam_name = models.CharField(max_length=255)
-    exam_type = models.CharField(max_length=50)
+    exam_type = models.CharField(max_length=50)    # Midterm/Final/Remedial/Undefined
     exam_status = models.IntegerField(null=True, blank=True)
-    major_id = models.IntegerField()
+
+    department_id = models.BigIntegerField()
+    department_name = models.CharField(max_length=100)
+
+    major_id = models.BigIntegerField()
     major_name = models.CharField(max_length=100)
-    level_id = models.IntegerField()
+    level_id = models.BigIntegerField()
     level_name = models.CharField(max_length=50)
-    semester_id = models.IntegerField()
-    semester_name = models.CharField(max_length=50)
-    hall_id = models.IntegerField()
+    semester_id = models.BigIntegerField()
+    semester_name = models.CharField(max_length=100)
+
+    hall_id = models.BigIntegerField()
     hall_name = models.CharField(max_length=100)
     exam_date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField()
 
+    # خصائص للعرض بالعربي
+    @property
+    def course_type_ar(self):
+        return {
+            'Theoretical': 'نظري',
+            'Practical': 'عملي',
+        }.get(self.course_type, 'غير محدد')
+
+    @property
+    def exam_type_ar(self):
+        return {
+            'Midterm': 'نصفي',
+            'Final': 'نهائي',
+            'Remedial': 'استدراكي',
+        }.get(self.exam_type, 'غير محدد')
+
+    @property
+    def course_type_class(self):
+        return {
+            'Theoretical': 'bg-blue-100 text-blue-800',
+            'Practical': 'bg-green-100 text-green-800',
+        }.get(self.course_type, 'bg-gray-100 text-gray-800')
+
+    @property
+    def exam_type_class(self):
+        return {
+            'Final': 'bg-red-100 text-red-800',
+            'Midterm': 'bg-yellow-100 text-yellow-800',
+            'Remedial': 'bg-purple-100 text-purple-800',
+        }.get(self.exam_type, 'bg-gray-100 text-gray-800')
+
     class Meta:
         managed = False
-        # db_table = 'ems_view_exam_schedule'
-        db_table = 'ems_view_exam_schedule'
-
-
-
-
-
-# =========================== Grade table ========================================================
-class Grade(models.Model):
-    student = models.ForeignKey(
-        "authentcat_app.Student", on_delete=models.CASCADE, related_name="grades"
-    )
-    course = models.ForeignKey(
-        "admin_app.Course", on_delete=models.CASCADE, related_name="grades"
-    )
-    academic_year = models.ForeignKey(
-        "admin_app.AcademicYear", on_delete=models.CASCADE, related_name="grades"
-    )
-    semester = models.ForeignKey(
-        "admin_app.Semester", on_delete=models.CASCADE, related_name="grades"
-    )
-    exam = models.ForeignKey(
-        "taecher_app.Exam", on_delete=models.CASCADE, related_name="grades"
-    )
-    marks_obtained = models.DecimalField(max_digits=5, decimal_places=2)  # الدرجة التي حصل عليها
-    total_marks = models.DecimalField(max_digits=5, decimal_places=2)     # الدرجة الكاملة
-    grade = models.CharField(max_length=5, blank=True, null=True)         # A, B, C ... (اختياري)
-
-    class Meta:
-        verbose_name = "الدرجة"
-        verbose_name_plural = "الدرجات"
-        unique_together = ("student", "course", "academic_year", "exam")
+        db_table = 'View_ExamSchedule'
+        ordering = ['department_name', 'major_name', 'level_name', 'semester_name', 'exam_date', 'start_time', 'course_name']
 
     def __str__(self):
-        return f"{self.student} - {self.course} - {self.marks_obtained}/{self.total_marks}"
+        return f'{self.exam_name} - {self.course_name} ({self.exam_date})'
+
+
+
+
+# =========================== student_report_from_uivercity ========================================================
+class student_report_from_uivercity (models.Model) :
+    
+    name = models.CharField(max_length=70 , verbose_name="الاسم")
+    gender = models.CharField(max_length=10 , verbose_name="النوع")
+    univercity_number = models.PositiveIntegerField(verbose_name="الرقم الجامعي")
+    major = models.CharField(max_length=30 , verbose_name="التخصص")
+    semester_id = models.PositiveSmallIntegerField(verbose_name="الفصل الدراسي")
+
+    class Meta:
+        verbose_name = _('بيانات الطلاب من التقرير الجامعة')
+        verbose_name_plural = _('بيانات الطلاب من التقرير الجامعة')
+
+        # دالة لترميز التخصص
+    
+    def __str__(self):
+        return f"{self.name}"
+
+    
+    @staticmethod
+    def major_to_number(major_name):
+        mapping = {
+            'تقنية المعلومات': 1,
+            'علوم حاسوب': 2,
+            'أمن سيبراني': 3,
+        }
+        return mapping.get(major_name, 0)  # 0 إذا لم يكن موجود في الخريطة
+
+
+
+
+# =========================== Acdimaic_and_term_from_uivercity ========================================================
+class Acdimaic_and_term_from_uivercity (models.Model) :
+    Acdimaic_year = models.CharField(max_length=10 , verbose_name="السنة الدراسية")
+    Acdimaic_year_semester = models.CharField(max_length=10 , verbose_name="فصل السنة الدراسية")
+
+    class Meta:
+        verbose_name = _('الفصل و الترم من تقرير الجامعة')
+        verbose_name_plural = _('الفصل و الترم من تقرير الجامعة')
+
+
+
+
+
+class student_courses_grads (models.Model) :
+    
+    student = models.ForeignKey(student_report_from_uivercity , on_delete= models.CASCADE , related_name="student_grads" , verbose_name="الطالب")
+    course = models.ForeignKey('admin_app.Course' , on_delete= models.CASCADE , related_name="course_grads" , verbose_name="المقرر")
+    
+    
+    # تفصيل الدرجات
+    midterm_mark = models.DecimalField(max_digits=6, decimal_places=2, default=Decimal('0.00'),verbose_name="درجة الامتحان النصفي")
+    final_mark = models.DecimalField(max_digits=6, decimal_places=2, default=Decimal('0.00'),verbose_name="درجة الامتحان النهائي")
+    classwork_mark = models.DecimalField(max_digits=6, decimal_places=2, default=Decimal('0.00'),verbose_name="درجة الامتحان أعمال الفصل")
+    total_mark = models.DecimalField(max_digits=6, decimal_places=2, default=Decimal('0.00'),verbose_name="المجموع")
+
+    
+    class Meta:
+        verbose_name = _('درجات الطلاب في المقررات')
+        verbose_name_plural = _('درجات الطلاب في المقررات')
+
+
+    def __str__(self):
+        return f"{self.student.name} "
+    
+    def recompute(self):
+        try:
+            course_structure: CourseStructure = self.course.course_structure
+        except CourseStructure.DoesNotExist:
+            # لو ما في CourseStructure، نوقف العملية
+            raise ValidationError("هيكل المقرر غير موجود")
+
+        midterm_mark_max = course_structure.midterm_exam_max
+        final_mark_max = course_structure.final_exam_max
+        class_work_mark_max = course_structure.class_work_max
+
+        # آخر محاولة للطالب
+        studentexamAttmpt_last = StudentExamAttempt.objects.filter(
+            attendance__student=self.student
+        ).order_by('-attempt_number').first()
+
+        if not studentexamAttmpt_last:
+            # الطالب ما عنده أي محاولة
+            return
+
+        exam_type = studentexamAttmpt_last.attendance.exam.exam_type
+        total_score = studentexamAttmpt_last.total_score or 0  # لو None نحوله 0
+
+        if exam_type == Exam.ExamTypes.FINAL:
+            self.final_mark = min(total_score, final_mark_max)
+        elif exam_type == Exam.ExamTypes.MIDTERM:
+            self.midterm_mark = min(total_score, midterm_mark_max)
 
 

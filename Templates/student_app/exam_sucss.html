@@ -1,6 +1,92 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block title %} إنتهاء الامتحان | EMS  {% endblock title %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
+  <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-md text-center">
+    <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-6">
+      <svg class="h-10 w-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+      </svg>
+    </div>
+
+    <h1 class="text-2xl font-bold text-gray-800 mb-2">تم إجراء الامتحان بنجاح</h1>
+
+    <div class="mt-6 bg-blue-50 rounded-lg p-4 text-right">
+      <p class="text-lg text-blue-800 font-medium">إجمالي الوقت المستغرق للامتحان</p>
+      <p class="text-3xl font-bold text-blue-900 mt-2">{{ duration_human }}</p>
+
+      <p class="text-lg text-blue-800 font-medium mt-4">عدد الأسئلة التي أجبت عليها</p>
+      <p class="text-3xl font-bold text-blue-900 mt-2">{{ answered_count }} من {{ total_questions }} سؤال</p>
+
+      <p class="text-lg text-blue-800 font-medium mt-4">الدرجة</p>
+      <p class="text-3xl font-bold text-blue-900 mt-2">{{ total_score }}</p>
+
+      <div class="mt-4 text-sm text-blue-900">
+        <p>بدأ الامتحان: {{ start_time|date:"Y-m-d H:i:s" }}</p>
+        {% if end_time %}
+          <p>انتهى الامتحان: {{ end_time|date:"Y-m-d H:i:s" }}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="ml-3 flex-1 mt-4">
+          <p class="text-sm font-medium">{{ message }}</p>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <p class="mt-6 text-gray-600">
+      سيتم تحويلك إلى صفحة تسجيل الدخول خلال
+      <span id="redirect-seconds" class="font-semibold">5</span>
+      ثوانٍ...
+      <a href="{% url 'authentcat_app:sign_in' %}" class="text-blue-600 underline ml-2">الذهاب الآن</a>
+    </p>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var seconds = 15;
+    var el = document.getElementById('redirect-seconds');
+    var url = "{% url 'authentcat_app:sign_in' %}";
+    var iv = setInterval(function () {
+      seconds -= 1;
+      if (el) el.textContent = seconds;
+      if (seconds <= 0) {
+        clearInterval(iv);
+        window.location.replace(url);
+      }
+    }, 1000);
+  })();
+</script>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% comment %} 
+{% extends 'base.html' %}
+{% load static %}
+
 {% block title %} إنتهاء الامتحان | EMS  {%endblock title%}
 
 
@@ -38,4 +124,30 @@
             {% endif %}
     </div>
 </div>
-{% endblock %}
+<p class="mt-6 text-gray-600">
+  سيتم تحويلك إلى صفحة تسجيل الدخول خلال
+  <span id="redirect-seconds" class="font-semibold">5</span>
+  ثوانٍ...
+  <a href="{% url 'authentcat_app:sign_in' %}" class="text-blue-600 underline ml-2">الذهاب الآن</a>
+</p>
+
+<script>
+  (function () {
+    var seconds = 5;
+    var el = document.getElementById('redirect-seconds');
+    var url = "{% url 'authentcat_app:sign_in' %}";
+    var iv = setInterval(function () {
+      seconds -= 1;
+      if (el) el.textContent = seconds;
+      if (seconds <= 0) {
+        clearInterval(iv);
+        window.location.replace(url);
+      }
+    }, 1000);
+  })();
+</script>
+{% endblock %} {% endcomment %}
+
+
+
+

@@ -51,11 +51,13 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     #the app created by developer
+    'widget_tweaks',
     'admin_app.apps.AdminAppConfig',
     'conttroll_app.apps.ConttrollAppConfig',
     'taecher_app.apps.TaecherAppConfig',
     'core_app.apps.CoreAppConfig',
     'student_app.apps.StudentAppConfig',
+    'django_currentuser',
 ]
 
 
@@ -71,6 +73,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     
     #the MIDDLEWARE created by developer
+    "django_currentuser.middleware.ThreadLocalUserMiddleware"
     # "admin_reorder.middleware.ModelAdminReorder",  
     
 ]
@@ -119,34 +122,34 @@ WSGI_APPLICATION = "ems.wsgi.application"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 # -----------data connect with postqreSQL-------------- 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'ems',
-        'USER': 'postgres',
-        'PASSWORD': 'm123&456m',
-        'HOST': 'localhost',  # أو عنوان الخادم
-        'PORT': '5432',      # البورت الافتراضي لـ PostgreSQL
-    }
-}
-
-
-# -------------data connect with sqlserver-------------- 
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'mssql',
-#         'NAME': 'ems',  # استبدل هذا باسم قاعدة البيانات الفعلي
-#         'HOST': 'DESKTOP-A33RERJ',     # كما يظهر في Server Name
-#         'OPTIONS': {
-#             'driver': 'ODBC Driver 17 for SQL Server',
-#             'Trusted_Connection': 'yes',
-#             'extra_params': 'Encrypt=no'  # إذا كنت لا تستخدم التشفير
-#         },
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'ems',
+#         'USER': 'postgres',
+#         'PASSWORD': 'm123&456m',
+#         'HOST': 'localhost',  # أو عنوان الخادم
+#         'PORT': '5432',      # البورت الافتراضي لـ PostgreSQL
 #     }
 # }
 
 
-# -------------data connect with mysql-------------- 
+# -------------data connect with sqlserver-------------- 
+DATABASES = {
+    'default': {
+        'ENGINE': 'mssql',
+        'NAME': 'ems1',  # استبدل هذا باسم قاعدة البيانات الفعلي
+        'HOST': 'DESKTOP-A33RERJ',     # كما يظهر في Server Name
+        'OPTIONS': {
+            'driver': 'ODBC Driver 17 for SQL Server',
+            'Trusted_Connection': 'yes',
+            'extra_params': 'Encrypt=no'  # إذا كنت لا تستخدم التشفير
+        },
+    }
+}
+
+
+# # -------------data connect with mysql-------------- 
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.mysql',
@@ -227,65 +230,72 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # ====================== jazzmin admin panel pack===================================
 # Custom Admin Settings
 JAZZMIN_SETTINGS = {
-    "custom_css": "css/rtl.css",  # هنا أضفنا ملف RTL
-    "site_title": "Coding Hustler",
-    "site_header": "Coding Hustler",
-    "site_brand": "Modern Marketplace ",
+    # ملفات JS مخصصة (استخدم ملف واحد فقط وادمج فيه أي كود تحتاجه)
+    "custom_js":"js/sidebar-scroll.js",
+    # ملف CSS مخصص
+    "custom_css": "css/rtl.css",
+
+    # العناوين والعلامات
+    "site_title": "نظام الامتحانات الالكترونية",
+    "site_header": "نظام الامتحانات الالكترونية",
+    "site_brand": "جامعة تعز فرع التربة",
     "site_icon": "img/tize_unvercity_logo.svg",
     # "site_logo": "img/Mohammed.jpg",
-    "welcome_sign": "Welcome To Coding Hustler",
-    "copyright": "Coding-Hustler",
-    "user_avatar": "img/tize_unvercity_logo.svg",
+    "welcome_sign": "نظام الامتحانات الالكترونية",
+    "copyright": " ",
+
+    # القوائم العلوية
     "topmenu_links": [
-        {"name": "Dashboard", "url": "home", "permissions": ["auth.view_user"]},
+        # تأكد أن عندك URL باسم home في urls.py
+        # أو غيّرها لمسار ثابت مثل "/admin/"
+        {"name": "لوحة التحكم", "url": "/admin/", "permissions": ["auth.view_user"]},
         {"model": "auth.User"},
     ],
+
+    # الشريط الجانبي
     "show_sidebar": True,
-    "navigation_expanded": True,
+    "navigation_expanded": False,  # القوائم مغلقة بشكل افتراضي
+
+    # الأيقونات
     "icons": {
         "admin.LogEntry": "fas fa-file",
-
         "auth": "fas fa-users-cog",
         "auth.user": "fas fa-user",
 
         "api.User": "fas fa-user",
-        "api.Profile":"fas fa-address-card",
-        "api.Post":"fas fa-th",
-        "api.Category":"fas fa-tag",
-        "api.Comment":"fas fa-envelope",
-        "api.Notification":"fas fa-bell",
-        "api.Bookmark":"fas fa-heart",
-
-        
+        "api.Profile": "fas fa-address-card",
+        "api.Post": "fas fa-th",
+        "api.Category": "fas fa-tag",
+        "api.Comment": "fas fa-envelope",
+        "api.Notification": "fas fa-bell",
+        "api.Bookmark": "fas fa-heart",
     },
+
     "default_icon_parents": "fas fa-chevron-circle-right",
     "default_icon_children": "fas fa-arrow-circle-right",
+
     "related_modal_active": False,
-    
-    "custom_js": None,
     "show_ui_builder": True,
-    
+
+    # نماذج
     "changeform_format": "horizontal_tabs",
     "changeform_format_overrides": {
         "auth.user": "collapsible",
         "auth.group": "vertical_tabs",
     },
-    
-    
-    
+
+    # ترتيب التطبيقات والنماذج
     "order_with_respect_to": [
         # admin_app
         "admin_app",
         "admin_app.Department",
+        "admin_app.AcademicYear",
         "admin_app.Major",
         "admin_app.Level",
         "admin_app.Semester",
         "admin_app.Batch",
         "admin_app.Course",
-        "admin_app.AcademicYear",
-        
-        
-        
+
         # authentcat_app
         "authentcat_app",
         "authentcat_app.User",
@@ -295,7 +305,7 @@ JAZZMIN_SETTINGS = {
         "authentcat_app.teacher",
         "authentcat_app.student",
         "authentcat_app.profile",
-        
+
         # conttroll_app
         "conttroll_app",
         "conttroll_app.ExamSchedule",
@@ -304,27 +314,27 @@ JAZZMIN_SETTINGS = {
         "conttroll_app.ExamStatusLog",
         "conttroll_app.CourseEnrollment",
         "conttroll_app.Grade",
-        
+
         # taecher_app
         "taecher_app",
         "taecher_app.CourseStructure",
         "taecher_app.Exam",
         "taecher_app.Question",
-        "taecher_app.Answer",
         "taecher_app.EssayQuestion",
         "taecher_app.EssayAnswerEvaluation",
         "taecher_app.NumericQuestion",
-        
-        
+        "taecher_app.MultipleChoiceQuestion",
+        "taecher_app.TrueFalseQuestion",
+        "taecher_app.Answer",
+
         # student_app
         "student_app",
         "student_app.StudentExamAttempt",
         "student_app.StudentEssayAnswer",
-        "student_app.ObjectiveQuestionAttempt",
         "student_app.StudentNumericAnswer",
+        "student_app.StudentTrueFalseQutionAnswer",
+        "student_app.StudentMultipleChoiceQuestionAnswer",
     ],
-
-
 }
 
 # Jazzmin Tweaks
@@ -345,7 +355,8 @@ JAZZMIN_UI_TWEAKS = {
     "sidebar": "sidebar-dark-indigo",
     "sidebar_nav_small_text": False,
     "sidebar_disable_expand": False,
-    "sidebar_nav_child_indent": False,
+    "sidebar_nav_child_indent": True,
+
     "sidebar_nav_compact_style": False,
     "sidebar_nav_legacy_style": False,
     "sidebar_nav_flat_style": False,

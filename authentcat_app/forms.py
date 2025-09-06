@@ -67,10 +67,10 @@ class CreateUserForm(forms.ModelForm):
             'user_type': forms.Select(attrs={
                 'class': 'w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 group-hover:shadow-sm'
             }),
-'photo': forms.ClearableFileInput(attrs={
-    'class': 'hidden',  # سيتم إخفاء العنصر الأصلي
-    'id': 'photo-upload-input',  # مهم للربط مع العناصر الأخرى
-}),
+            'photo': forms.ClearableFileInput(attrs={
+                'class': 'hidden',  # سيتم إخفاء العنصر الأصلي
+                'id': 'photo-upload-input',  # مهم للربط مع العناصر الأخرى
+            }),
             'groups': forms.SelectMultiple(attrs={
                 'class': 'w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 group-hover:shadow-sm'
             }),

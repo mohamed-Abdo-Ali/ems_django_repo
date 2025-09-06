@@ -1,0 +1,96 @@
+{% extends "admin/change_list.html" %}
+
+{% block result_list %}
+<div class="grouped-exam-container">
+  {% if groups %}
+    {% for g in groups %}
+      <div class="exam-group">
+        <div class="exam-header">
+          <!-- زر توسيع/طي الامتحان -->
+          <button class="group-toggle exam-toggle" type="button"
+                  aria-expanded="false"
+                  aria-controls="exam-{{ g.exam.id }}"
+                  data-target="exam-{{ g.exam.id }}"
+                  title="توسيع/طي">
+            <span class="toggle-symbol" aria-hidden="true">+</span>
+          </button>
+
+          <div class="exam-info">
+            <div class="exam-title">
+              <a href="{% url exam_change_url_name g.exam.pk %}">{{ g.exam.name|default:"بدون اسم" }}</a>
+              — <a href="{% url course_change_url_name g.exam.course.pk %}">{{ g.exam.course.name }}</a>
+            </div>
+            <div class="exam-meta">
+              <span>النوع: {{ g.exam.get_exam_type_display }}</span>
+              <span>الصنف: {{ g.exam.get_exam_category_display }}</span>
+              <span>الدرجة: {{ g.exam.total_marks }}</span>
+              <span>عدد الأسئلة: {{ g.questions|length }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- أسئلة هذا الامتحان -->
+        <div id="exam-{{ g.exam.id }}" class="exam-questions" hidden>
+          {% for q in g.questions %}
+            <div class="question-block">
+              <div class="question-header">
+                <button class="group-toggle question-toggle" type="button"
+                        aria-expanded="false"
+                        aria-controls="q-{{ q.question.id }}"
+                        data-target="q-{{ q.question.id }}"
+                        title="توسيع/طي الإجابات">
+                  <span class="toggle-symbol" aria-hidden="true">+</span>
+                </button>
+                <div class="question-info">
+                  <div class="question-text">
+                    <a href="{% url question_change_url_name q.question.pk %}" title="{{ q.question.text }}">
+                      {{ q.question.text|truncatechars:120 }}
+                    </a>
+                  </div>
+                  <div class="question-meta">
+                    <span>الدرجة: {{ q.question.points }}</span>
+                    <span>النوع: {{ q.question.get_question_type_display }}</span>
+                    <span>عدد الإجابات: {{ q.answers|length }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- إجابات هذا السؤال -->
+              <div id="q-{{ q.question.id }}" class="answers-pane" hidden>
+                <table class="answers-table">
+                  <thead>
+                    <tr>
+                      <th style="width:40px">#</th>
+                      <th>نص الإجابة</th>
+                      <th style="width:80px">صحيحة؟</th>
+                      <th style="width:140px">إجراءات</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for a in q.answers %}
+                      <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td title="{{ a.answer_text }}">{{ a.answer_text|truncatechars:100 }}</td>
+                        <td>{% if a.is_correct %}✓{% else %}✗{% endif %}</td>
+                        <td>
+                          <a href="{% url answer_change_url_name a.pk %}" class="button btn btn-sm btn-outline-primary">عرض</a>
+                        </td>
+                      </tr>
+                    {% empty %}
+                      <tr><td colspan="4">لا توجد إجابات.</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          {% empty %}
+            <p>لا توجد أسئلة لهذا الامتحان.</p>
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>لا توجد نتائج.</p>
+  {% endif %}
+</div>
+{% endblock %}

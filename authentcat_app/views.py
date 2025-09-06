@@ -1,87 +1,68 @@
 from django.contrib import auth  
-from io import BytesIO
 import re
-from admin_app.models import Batch, Course, Major,Level,User,Semester
-from .models import BasicUser, ControlCommitteeMember, Profile,Student, Teacher,User,Manager
+from .models import  Profile, buffer_Student
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth import authenticate, login  # هذا ما ناقصك
-from .forms import  CreateUserForm,ProfileForm
 from django.contrib import messages
-from django.contrib.auth import get_user_model
-from django.conf import settings
-import os
-from django.core.files.uploadedfile import InMemoryUploadedFile
-import sys
-from django.core.files.storage import FileSystemStorage
-from django.contrib.auth.hashers import make_password
 from django.db import IntegrityError
-from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 
 
 
-# ============================ login function viwe ===============================================
+
+# ============================ sign_in function viwe ===============================================
 def sign_in(request):
-    
     if request.method == 'POST' and 'login_button_template' in request.POST:
         username = request.POST.get('username', '').strip()
         password = request.POST.get('password', '').strip()
         remember_me = request.POST.get('remember_me') == 'on'
-        
-         # التحقق من المدخلات
+
         if not username or not password:
             messages.error(request, "يجب إدخال اسم المستخدم وكلمة المرور")
             return render(request, 'authentcat_app/sign_in.html')
-        
-        user = authenticate(username=username, password=password)
-            
-            
-        if user is not None:  # إذا تمت المصادقة بنجاح
-            if user.is_active:  # إذا كان الحساب نشط
-                if not remember_me:
-                    request.session.set_expiry(0)
-                else:
-                    request.session.set_expiry(1209600)  # 14 يومًا
-                    
-                login(request, user)
-                
-                # التحقق من وجود ملف شخصي للمستخدم
-                try:
-                    profile = Profile.objects.get(user=user)
-                    
-                    # إذا كان الملف الشخصي ناقصًا بعض البيانات
-                    if not profile.phone_number or not profile.email:
+
+        # محاولة التحقق من الطلاب أولًا (buffer_Student)
+        try:
+            student = buffer_Student.objects.get(username=username, password=password)
+            # تم التحقق من الطالب بنجاح (مقارنة نصية)
+            request.session['student_username'] = student.username  # تخزين اسم الطالب في الجلسة
+            request.session['student_password'] = student.password  # تخزين اسم الطالب في الجلسة
+            return redirect('student_app:insert_unviercityNumber')
+        except buffer_Student.DoesNotExist:
+            # إذا لم يكن الطالب، نتحقق من المستخدم الأساسي
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                if user.is_active:
+                    request.session.set_expiry(0 if not remember_me else 1209600)
+                    login(request, user)
+
+                    # التحقق من الملف الشخصي
+                    try:
+                        profile = Profile.objects.get(user=user)
+                        if not profile.phone_number or not profile.email:
+                            return redirect('authentcat_app:insert_phoneEmail')
+                    except Profile.DoesNotExist:
                         return redirect('authentcat_app:insert_phoneEmail')
+
+                    # إعادة التوجيه حسب نوع المستخدم الأساسي
+                    if hasattr(user, 'is_basic') and user.is_basic:
+                        return redirect('/admin/')
+                    elif hasattr(user, 'is_student') and user.is_student:
+                        return redirect('student_app:insert_unviercityNumber')
                     else:
-                        if request.user.is_teacher:
-                            return redirect('student_app:insert_unviercityNumber')
-                        if  request.user.is_student:
-                            return redirect('student_app:insert_unviercityNumber')
-                        if  request.user.is_committee_member:
-                            return redirect('student_app:insert_unviercityNumber')
-                        if  request.user.is_teacher:
-                            return redirect('student_app:insert_unviercityNumber')
-                        
-                except Profile.DoesNotExist:
-                    # إذا لم يكن هناك ملف شخصي
-                    return redirect('authentcat_app:insert_phoneEmail')
-            else:
-                messages.error(request, "حسابك معطل. يرجى التواصل مع الإدارة")
-        else:  # إذا فشلت المصادقة
-            # نتحقق أولاً إذا كان المستخدم موجودًا قبل محاولة الحصول عليه
-            if User.objects.filter(username=username).exists():
-                user = User.objects.get(username=username)
-                if not user.is_active:
-                    messages.error(request, "حسابك معطل. يرجى التواصل مع الإدارة")
+                        return redirect('authentcat_app:home')
                 else:
-                    messages.error(request, "اسم المستخدام او كلمة المرور غير صحيحة")
+                    messages.error(request, "حسابك معطل. يرجى التواصل مع الإدارة")
             else:
-                messages.error(request, "اسم المستخدام او كلمة المرور غير صحيحة")
-            
-        return render(request, 'authentcat_app/sign_in.html')
-    else:
-        return render(request, 'authentcat_app/sign_in.html')
+                messages.error(request, "اسم المستخدم أو كلمة المرور غير صحيحة")
+
+            return render(request, 'authentcat_app/sign_in.html')
+
+    return render(request, 'authentcat_app/sign_in.html')
+
+
+
 
 
 # ============================ password_reset function viwe ===============================================
@@ -279,7 +260,11 @@ def insert_phoneEmail(request):
                     }
                 )
                 messages.success(request, "تم حفظ بياناتك بنجاح")
-                return redirect('student_app:insert_unviercityNumber')
+                if request.user.is_basic:
+                    return redirect('/admin/')
+                else :
+                    return redirect('student_app:insert_unviercityNumber')
+                    
             
             except IntegrityError:
                 messages.error(request, "حدث خطأ أثناء الحفظ")
@@ -327,447 +312,6 @@ def profile(request):
 # ============================ change_password function viwe ===============================================
 def change_password(request):
     return render(request, 'authentcat_app/change_password.html')
-
-
-
-
-
-
-# ============================ create_teacher function viwe ===============================================
-def create_teacher(request):
-    
-    Subjects = Course.objects.all()
-    Permissions = Permission.objects.all()
-    
-    context ={
-        'Subjects':Subjects,
-        'Permissions':Permissions,
-    }
-    
-    # basic virable data
-    # ======================
-    username = None 
-    password = None 
-    confirm_password = None 
-    full_name = None 
-    gender = None
-    account_status = None
-    uploaded_photo = None
-
-
-    # if request is POST and cklecked buttom submet name=form_creat_buttom
-    if request.method == 'POST' and 'form_creat_buttom' in request.POST :
-
-        # Get value from the form
-        # ===========================================================================        
-        if request.POST.get('form_username', '').strip() : username = request.POST.get('form_username')
-        else : messages.info(request, "الرجاء إدخال الاسم")
-            
-        
-        if 'form_password' in request.POST : password = request.POST['form_password']
-        else : messages.error(request, "الرجاء إدخال كملة المرور")
-        
-        if 'form_confirm_password' in request.POST : confirm_password = request.POST['form_confirm_password']
-        else : messages.error(request, "الرجاء إدخال تاكيد كملة المرور")
-        
-        if 'form_fullname' in request.POST :
-            messages.info(request, "form_fullname")
-            full_name = request.POST['form_fullname']
-        else : messages.error(request, "الرجاء إدخال الاسم")
-        
-        # if 'gender' in request.POST : gender = request.POST['gender']
-        # else : messages.error(request, "الرجاء  تحديد النوع")
-        
-        # if 'account_status' in request.POST : account_status = request.POST['genaccount_statusder']
-        # else : messages.error(request, "الرجاء تحديد حالة الحساب")
-        
-        # if 'photo-upload' in request.POST : account_status = request.POST['photo-upload']
-        # else : messages.error(request, "الرجاء إختيار الصورة")
-
-        # # معالجة اصورة
-        # # ===============================
-        # if 'photo-upload' in request.FILES:
-        #     uploaded_photo = request.FILES['photo-upload']
-        #     if uploaded_photo.size > 5*1024*1024:
-        #         messages.error(request, 'حجم الصورة يجب أن يكون أقل من 5MB')
-        #     fs = FileSystemStorage()
-        #     photo = fs.save(uploaded_photo.name, uploaded_photo)
-        # else :
-        #     messages.error(request, "الرجاء إختيار الصورة")
-    else :
-        pass    
-    
-    
-    # # ========= فحص قيم كل الحقول ===================================================================================
-    # if username and password and confirm_password and full_name and gender and account_status and uploaded_photo :
-    #     pass
-    # else :
-    #     messages.error(request , "افحص كل الحقول")
-        
-        
-
-        
-        # # التحقق من تطابق كلمة المرور
-        # if password != confirm_password:
-        #     messages.error(request, 'كلمة المرور غير متطابقة')
-        
-        # # التحقق من طول كلمة المرور
-        # if len(password) < 4:
-        #     messages.error(request, 'كلمة المرور يجب أن تكون 8 أحرف على الأقل')
-        
-        # # التحقق من وجود اسم المستخدم
-        # if User.objects.filter(username=username).exists():
-        #     messages.error(request, 'اسم المستخدم موجود مسبقاً')
-
-
-        
-        # # معالجة صورة المعلم
-        # if 'photo-upload' in request.FILES:
-        #     uploaded_photo = request.FILES['photo-upload']
-        #     if uploaded_photo.size > 5*1024*1024:
-        #         messages.error(request, 'حجم الصورة يجب أن يكون أقل من 5MB')
-        #     fs = FileSystemStorage()
-        #     photo = fs.save(uploaded_photo.name, uploaded_photo)
-        
-        # # إنشاء حساب المستخدم
-        # user = User.objects.create(
-        #     username=username,
-        #     password=make_password(password),
-        #     full_name=full_name,
-        #     gender=gender,
-        #     user_type=1, #مستخدام اساسي
-        #     is_active=account_status,
-        #     photo=photo  
-        # )
-
-
-        # # إنشاء حساب المستخدم اساسي من نوع معلم 
-        # user_basic_user = BasicUser.objects.create(
-        #     user=user, 
-        #     basic_user_type = 1, #معلم 
-        # )
-
-        # # إنشاء حساب المستخدم اساسي من نوع معلم 
-        # user_teacher = Teacher.objects.create(
-        #     basic_user=user_basic_user, 
-        # )
-                
-        # messages.success(request, 'تم إنشاء المعلم بنجاح')
-        # return redirect('authentcat_app:sign_in')
-    
-    return render(request, 'authentcat_app/create_teacher.html',context)
-
-
-
-
-# ============================ create_controll function viwe ===============================================
-def create_controll(request):
-    
-    if request.method == 'POST':
-        # استقبال البيانات من النموذج
-        username = request.POST.get('form_username')
-        password = request.POST.get('form_password')
-        confirm_password = request.POST.get('form_confirm_password')
-        full_name = request.POST.get('form_fullname')
-        gender = request.POST.get('gender')
-        account_status = request.POST.get('account_status') == 'on'
-
-        
-        # التحقق من صحة البيانات الأساسية
-        if not username or not password or not confirm_password or not full_name:
-            messages.error(request, 'جميع الحقول الإجبارية مطلوبة')
-        
-        # التحقق من تطابق كلمة المرور
-        if password != confirm_password:
-            messages.error(request, 'كلمة المرور غير متطابقة')
-        
-        # التحقق من طول كلمة المرور
-        if len(password) < 4:
-            messages.error(request, 'كلمة المرور يجب أن تكون 8 أحرف على الأقل')
-        
-        # التحقق من وجود اسم المستخدم
-        if User.objects.filter(username=username).exists():
-            messages.error(request, 'اسم المستخدم موجود مسبقاً')
-
-
-        
-        # معالجة الصورة
-        photo = None
-        if 'photo-upload' in request.FILES:
-            uploaded_photo = request.FILES['photo-upload']
-            if uploaded_photo.size > 5*1024*1024:
-                messages.error(request, 'حجم الصورة يجب أن يكون أقل من 5MB')
-            fs = FileSystemStorage()
-            photo = fs.save(uploaded_photo.name, uploaded_photo)
-        
-        # إنشاء حساب المستخدم
-        user = User.objects.create(
-            username=username,
-            password=make_password(password),
-            full_name=full_name,
-            gender=gender,
-            user_type=1, #مستخدام اساسي
-            is_active=account_status,
-            photo=photo  
-        )
-
-
-        # إنشاء حساب المستخدم اساسي من نوع كنترول 
-        user_basic_user = BasicUser.objects.create(
-            user=user, 
-            basic_user_type = 2, #عضو لجنة الكنترول 
-        )
-
-        # إنشاء حساب المستخدم اساسي من نوع معلم 
-        user_controll = ControlCommitteeMember.objects.create(
-            basic_user=user_basic_user, 
-        )
-                
-        messages.success(request, 'تم إنشاء الكنترول بنجاح')
-        return redirect('authentcat_app:sign_in')
-    
-    return render(request, 'authentcat_app/create_controll.html')
-
-
-
-
-
-
-
-
-# ============================ create_admin function viwe ===============================================
-def create_admin(request):
-    
-    if request.method == 'POST':
-        # استقبال البيانات من النموذج
-        username = request.POST.get('form_username')
-        password = request.POST.get('form_password')
-        confirm_password = request.POST.get('form_confirm_password')
-        full_name = request.POST.get('form_fullname')
-        gender = request.POST.get('gender')
-        account_status = request.POST.get('account_status') == 'on'
-
-        
-        # التحقق من صحة البيانات الأساسية
-        if not username or not password or not confirm_password or not full_name:
-            messages.error(request, 'جميع الحقول الإجبارية مطلوبة')
-        
-        # التحقق من تطابق كلمة المرور
-        if password != confirm_password:
-            messages.error(request, 'كلمة المرور غير متطابقة')
-        
-        # التحقق من طول كلمة المرور
-        if len(password) < 4:
-            messages.error(request, 'كلمة المرور يجب أن تكون 8 أحرف على الأقل')
-        
-        # التحقق من وجود اسم المستخدم
-        if User.objects.filter(username=username).exists():
-            messages.error(request, 'اسم المستخدم موجود مسبقاً')
-
-
-        
-        # معالجة الصورة
-        photo = None
-        if 'photo-upload' in request.FILES:
-            uploaded_photo = request.FILES['photo-upload']
-            if uploaded_photo.size > 5*1024*1024:
-                messages.error(request, 'حجم الصورة يجب أن يكون أقل من 5MB')
-            fs = FileSystemStorage()
-            photo = fs.save(uploaded_photo.name, uploaded_photo)
-        
-        # إنشاء حساب المستخدم
-        user = User.objects.create(
-            username=username,
-            password=make_password(password),
-            full_name=full_name,
-            gender=gender,
-            user_type=1, #مستخدام اساسي
-            is_active=account_status,
-            photo=photo  
-        )
-
-
-        # إنشاء حساب المستخدم اساسي من نوع مدير 
-        user_basic_user = BasicUser.objects.create(
-            user=user, 
-            basic_user_type = 3, # المدير 
-        )
-
-        # إنشاء حساب المستخدم اساسي من نوع مدير 
-        user_admin = Manager.objects.create(
-            basic_user=user_basic_user, 
-        )
-                
-        messages.success(request, 'تم إنشاء المدير بنجاح')
-        return redirect('authentcat_app:sign_in')
-    
-    return render(request, 'authentcat_app/create_admin.html')
-
-
-
-
-
-# ============================ create_student function viwe ===============================================
-def create_student(request):
-    # جلب البيانات للقوائم المنسدلة
-    majors = Major.objects.all()
-    batches = Batch.objects.all()
-    semesters = Semester.objects.all()
-    
-    if request.method == 'POST':
-        # استقبال البيانات من النموذج
-        username = request.POST.get('form_username')
-        password = request.POST.get('form_password')
-        confirm_password = request.POST.get('form_confirm_password')
-        full_name = request.POST.get('form_fullname')
-        gender = request.POST.get('gender')
-        account_status = request.POST.get('account_status') == 'on'
-        university_id = request.POST.get('university_id')
-        major_id = request.POST.get('major')
-        batch_id = request.POST.get('batch')
-        semester_id = request.POST.get('semester')
-        registration_type = request.POST.get('registration_type')
-        
-        # التحقق من صحة البيانات الأساسية
-        if not username or not password or not confirm_password or not full_name:
-            messages.error(request, 'جميع الحقول الإجبارية مطلوبة')
-        
-        # التحقق من تطابق كلمة المرور
-        if password != confirm_password:
-            messages.error(request, 'كلمة المرور غير متطابقة')
-        
-        # التحقق من طول كلمة المرور
-        if len(password) < 4:
-            messages.error(request, 'كلمة المرور يجب أن تكون 8 أحرف على الأقل')
-        
-        # التحقق من وجود اسم المستخدم
-        if User.objects.filter(username=username).exists():
-            messages.error(request, 'اسم المستخدم موجود مسبقاً')
-
-        
-        # التحقق من البيانات الأكاديمية
-        if not university_id or not major_id or not batch_id or not semester_id:
-            messages.error(request, 'جميع الحقول الأكاديمية مطلوبة')
-
-        
-        # معالجة صورة الطالب
-        photo = None
-        if 'photo-upload' in request.FILES:
-            uploaded_photo = request.FILES['photo-upload']
-            if uploaded_photo.size > 5*1024*1024:
-                messages.error(request, 'حجم الصورة يجب أن يكون أقل من 5MB')
-            fs = FileSystemStorage()
-            photo = fs.save(uploaded_photo.name, uploaded_photo)
-        
-        # إنشاء حساب المستخدم
-        user = User.objects.create(
-            username=username,
-            password=make_password(password),
-            full_name=full_name,
-            gender=gender,
-            user_type=User.UserTypes.STUDENT,
-            is_active=account_status,
-            photo=photo  # إذا كنت تريد حفظ الصورة في User وليس Student
-        )
-
-        # إنشاء سجل الطالب (بدون حقول User)
-        student = Student.objects.create(
-            user=user,  # فقط ربط بالـ User
-            university_id=university_id,
-            registration_type=registration_type,
-            Batch_id=batch_id,  # لاحظ استخدام _id للعلاقات
-            Major_id=major_id,
-            Semester_id=semester_id
-        )
-                
-        messages.success(request, 'تم إنشاء الطالب بنجاح')
-        return redirect('authentcat_app:sign_in')
-    
-    return render(request, 'authentcat_app/create_student.html', {
-        'majors': majors,
-        'batches': batches,
-        'semesters': semesters,
-    })
-
-
-
-
-
-
-
-# def create_student(request):
-#     # basic virable data
-#     username = None 
-#     password = None 
-#     confirm_password = None 
-#     fullname = None 
-#     image = None
-#     # Personal virable data
-#     email = None
-#     phone = None
-#     gender = None
-#     account_state = None
-#     # Personal varible data
-#     univercity_id = None
-#     Major_id = None
-#     Batch_id = None
-#     Semester_id = None
-    
-    
-#     # Get value from the form
-#     if 'form_username' in request.POST : username = request.POST['form_username']
-#     else : messages.error(request, "الرجاء إدخال اسم المستخدام")
-    
-#     if 'form_password' in request.POST : password = request.POST['form_password']
-#     else : messages.error(request, "الرجاء إدخال كملة المرور")
-    
-#     if 'form_fullname' in request.POST : fullname = request.POST['form_fullname']
-#     else : messages.error(request, "الرجاء إدخال الاسم ")
-
-#     if 'form_confirm_password' in request.POST : confirm_password = request.POST['form_confirm_password']
-#     else : messages.error(request, "الرجاء تاكيد كلمة المرور")
-
-#     if 'form_email' in request.POST : email = request.POST['form_email']
-#     else : messages.error(request, "الرجاء إدخال كملة المرور")
-
-#     if 'form_phone' in request.POST : phone = request.POST['form_phone']
-#     else : messages.error(request, "الرجاء إدخال كملة المرور")
-
-    
-    
-    
-#     # جلب البيانات للقوائم المنسدلة
-#     majors = Major.objects.all()
-#     batches = Batch.objects.all()
-#     semesters = Semester.objects.all()
-#     level = Level.objects.all()
-    
-#     context = {
-#         'majors': majors,
-#         'batches': batches,
-#         'semesters': semesters,
-#         'level': level,
-        
-#         'form': CreateUserForm(),
-#     }
-#     if request.method == 'POST' and 'create_student_buttom' in request.post :
-#         form = CreateUserForm(request.POST)
-#         if form.is_valid():  # التصحيح: يجب استدعاء الدالة is_valid()
-#             user = form.save(commit=False)  # حفظ المؤقت بدون حفظ في DB
-            
-#             # إذا كان الفورم لا يقوم بالتشفير تلقائياً:
-#             if hasattr(user, 'set_password'):
-#                 user.set_password(form.cleaned_data['password'])  # تشفير كلمة المرور
-            
-#             user.save()  # الحفظ النهائي في قاعدة البيانات
-#             messages.success(request, 'تم إنشاء المستخدم بنجاح!')
-#             return redirect('student_app:insert_unviercityNumber')  # توجيه إلى صفحة قائمة المستخدمين
-#         else:
-#             messages.error(request, 'حدث خطأ في البيانات المدخلة')
-#     else:
-#         form = CreateUserForm()
-    
-#     return render(request, 'authentcat_app/create_student.html',context)
 
 
 

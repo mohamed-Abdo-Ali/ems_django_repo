@@ -1,256 +1,232 @@
-# # admin.py
-# from django import forms
-# from django.contrib import admin
-# from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-# from .models import User, Profile, Student, BasicUser, Teacher, ControlCommitteeMember, Manager
-# from admin_app.models import Batch,Major
-# from admin_app.models import Semester
-# from django.contrib.auth import get_user_model
-
-# class StudentCreationForm(forms.ModelForm):
-#     class Meta:
-#         model = User
-#         fields = ('username', 'password', 'full_name', 'gender', 'photo')
-        
-#     university_id = forms.CharField(max_length=20)
-#     Batch = forms.ModelChoiceField(queryset=Batch.objects.all())
-#     Major = forms.ModelChoiceField(queryset=Major.objects.all())
-#     Semester = forms.ModelChoiceField(queryset=Semester.objects.all())
-#     registration_type = forms.ChoiceField(choices=Student.RegistrationTypes.choices)
-    
-#     def save(self, commit=True):
-#         user = super().save(commit=False)
-#         user.user_type = User.UserTypes.STUDENT
-#         if commit:
-#             user.save()
-#             student = Student.objects.create(
-#                 user=user,
-#                 university_id=self.cleaned_data['university_id'],
-#                 Batch=self.cleaned_data['Batch'],
-#                 Major=self.cleaned_data['Major'],
-#                 Semester=self.cleaned_data['Semester'],
-#                 registration_type=self.cleaned_data['registration_type']
-#             )
-#         return user
-
-# class TeacherCreationForm(forms.ModelForm):
-#     class Meta:
-#         model = User
-#         fields = ('username', 'password', 'full_name', 'gender', 'photo')
-        
-#     def save(self, commit=True):
-#         user = super().save(commit=False)
-#         user.user_type = User.UserTypes.BASIC
-#         if commit:
-#             user.save()
-#             basic_user = BasicUser.objects.create(
-#                 user=user,
-#                 basic_user_type=BasicUser.UserTypes.TEACHER
-#             )
-#             teacher = Teacher.objects.create(basic_user=basic_user)
-#         return user
-
-# class ProfileInline(admin.StackedInline):
-#     model = Profile
-#     can_delete = False
-#     verbose_name_plural = 'الملف الشخصي'
-    
-# class StudentInline(admin.StackedInline):
-#     model = Student
-#     can_delete = False
-#     verbose_name_plural = 'بيانات الطالب'
-#     fk_name = 'user'
-    
-# class BasicUserInline(admin.StackedInline):
-#     model = BasicUser
-#     can_delete = False
-#     verbose_name_plural = 'بيانات المستخدم الأساسي'
-#     fk_name = 'user'
-
-# class UserAdmin(BaseUserAdmin):
-#     inlines = (ProfileInline,)
-#     list_display = ('username', 'full_name', 'user_type', 'is_active')
-#     list_filter = ('user_type', 'is_active')
-    
-#     fieldsets = (
-#         (None, {'fields': ('username', 'password')}),
-#         ('معلومات الشخصية', {'fields': ('full_name', 'gender', 'photo')}),
-#         ('الصلاحيات', {'fields': ('is_active', 'is_staff', 'is_superuser', 'user_type', 'groups', 'user_permissions')}),
-#         ('تواريخ مهمة', {'fields': ('last_login', 'created_at', 'updated_at')}),
-#     )
-    
-#     add_fieldsets = (
-#         (None, {
-#             'classes': ('wide',),
-#             'fields': ('username', 'password1', 'password2'),
-#         }),
-#     )
-    
-#     def get_inline_instances(self, request, obj=None):
-#         if not obj:
-#             return []
-#         inlines = super().get_inline_instances(request, obj)
-#         if obj.is_student:
-#             inlines.append(StudentInline(self.model, self.admin_site))
-#         elif obj.is_basic:
-#             inlines.append(BasicUserInline(self.model, self.admin_site))
-#         return inlines
-    
-#     def get_formsets_with_inlines(self, request, obj=None):
-#         for inline in self.get_inline_instances(request, obj):
-#             yield inline.get_formset(request, obj), inline
-
-# class StudentAdmin(admin.ModelAdmin):
-#     form = StudentCreationForm
-#     list_display = ('university_id', 'user', 'Major', 'Semester')
-    
-#     def get_form(self, request, obj=None, **kwargs):
-#         if obj is None:
-#             return StudentCreationForm
-#         return super().get_form(request, obj, **kwargs)
-
-# class TeacherAdmin(admin.ModelAdmin):
-#     form = TeacherCreationForm
-#     list_display = ('basic_user',)
-    
-#     def get_form(self, request, obj=None, **kwargs):
-#         if obj is None:
-#             return TeacherCreationForm
-#         return super().get_form(request, obj, **kwargs)
-
-# # إلغاء التسجيل الافتراضي ثم إعادة التسجيل مع التخصيصات
-
-# User = get_user_model()
-# # فقط ألغي التسجيل إذا كان النموذج مسجلاً بالفعل
-# # if admin.site.is_registered(User):
-# # admin.site.unregister(User)
-# admin.site.register(User, UserAdmin)
-# admin.site.register(Student, StudentAdmin)
-# admin.site.register(Teacher, TeacherAdmin)
-# admin.site.register(ControlCommitteeMember)
-# admin.site.register(Manager)
-
-
-
-
-# =============================================================================================================================
-
-
-
-
-
-# from django.contrib import admin
-
-# from authentcat_app.models import User,Student,BasicUser,Teacher,ControlCommitteeMember,Manager,Profile
-# from django.contrib.auth.models import  Permission,Group
-
-# # Register your models here.
-# admin.site.register(User)
-# admin.site.register(Student)
-# admin.site.register(BasicUser)
-# admin.site.register(Teacher)
-# admin.site.register(ControlCommitteeMember)
-# admin.site.register(Manager)
-# admin.site.register(Profile)
-# admin.site.register(Permission)
-
-
-
-# =============================================================================================================================
-
-
+from typing import __all__
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.contrib.auth import get_user_model
-from django import forms
-
-from .models import (
-    User, Profile, Student, BasicUser, Teacher,
-    ControlCommitteeMember, Manager
-)
-from django.contrib.auth.models import Permission
+from django.contrib.auth.admin import UserAdmin
+from authentcat_app.models import User, Student, BasicUser, Teacher, ControlCommitteeMember, Manager, Profile, buffer_Student
+from django.contrib.auth.models import Permission, Group
+from django.utils.translation import gettext_lazy as _
+from django.db import models
+from django.core.exceptions import PermissionDenied
+from django.core.exceptions import ValidationError
 
 
-# ========================
-# Inline Models
-# ========================
-class ProfileInline(admin.StackedInline):
-    model = Profile
-    can_delete = False
-    verbose_name_plural = 'الملف الشخصي'
-    fk_name = 'user'
+
+# =============================== ReadOnlyViewAdminMixin =================================================================================================
+class ReadOnlyViewAdminMixin:
+    # منع الإضافة والتعديل
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    # لا تعطل الحذف كي لا يتعطل الحذف المتسلسل من النماذج الفرعية
+    def has_delete_permission(self, request, obj=None):
+        return True
+
+    # إزالة الحذف الجماعي من صفحة القائمة
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        actions.pop('delete_selected', None)
+        return actions
+
+    # منع الحذف المباشر من صفحة هذا الموديل
+    def delete_view(self, request, object_id, extra_context=None):
+        raise PermissionDenied("لا يمكن الحذف من هذه الصفحة. احذف من النماذج الفرعية (Teacher/Student/Manager/ControlCommitteeMember).")
 
 
-class StudentInline(admin.StackedInline):
-    model = Student
-    can_delete = False
-    verbose_name_plural = 'بيانات الطالب'
-    fk_name = 'user'
 
-
-class BasicUserInline(admin.StackedInline):
-    model = BasicUser
-    can_delete = False
-    verbose_name_plural = 'بيانات المستخدم الأساسي'
-    fk_name = 'user'
-
-
-# ========================
-# User Admin
-# ========================
-class UserAdmin(BaseUserAdmin):
-    inlines = (ProfileInline,)
-
-    list_display = ('username', 'full_name', 'user_type', 'is_active', 'is_staff', 'is_superuser')
-    list_filter = ('user_type', 'is_active', 'is_staff', 'is_superuser')
-
-    fieldsets = (
-        (None, {'fields': ('username', 'password')}),
-        ('معلومات الشخصية', {'fields': ('full_name', 'gender', 'photo')}),
-        ('الصلاحيات', {'fields': ('is_active', 'is_staff', 'is_superuser', 'user_type', 'groups', 'user_permissions')}),
-        # ('تواريخ مهمة', {'fields': ('last_login', 'created_at', 'updated_at')}),
+# =============================== UserAdminPanel =================================================================================================
+class UserAdminPanel(ReadOnlyViewAdminMixin, UserAdmin):
+    ordering = ('user_type', 'id')
+    list_filter = ()
+    list_display = (
+        'username',
+        'full_name', 'gender', 'user_type',
+        'created_at', 'updated_at',
+        'last_login', 'is_active', 'is_superuser', 'is_staff',
+        'get_groups'
     )
 
+    def get_groups(self, obj):
+        return ", ".join([g.name for g in obj.groups.all()])
+    get_groups.short_description = "المجموعات"
+
+    filter_horizontal = ('groups', 'user_permissions')
+    
+    readonly_fields = ['created_at', 'updated_at','username','full_name','gender','user_type','photo','is_active','is_staff','is_superuser']
+    
+
+    search_fields = ['username', 'full_name', 'user_type']
+
+
+
+# =============================== BasicUserAdminPanel =================================================================================================
+class BasicUserAdminPanel(ReadOnlyViewAdminMixin , UserAdmin):
+    ordering = ('basic_user_type', 'id')
+    list_filter = ()
+    list_display = (
+        'username',
+        'full_name', 'gender', 'user_type', 'basic_user_type',
+        'last_login', 'is_active', 'is_superuser', 'is_staff',
+        'get_groups'
+    )
+
+    def get_groups(self, obj):
+        return ", ".join([g.name for g in obj.groups.all()])
+    get_groups.short_description = "المجموعات"
+
+    readonly_fields = ['username','full_name','gender','user_type','basic_user_type','last_login','is_active','is_superuser','is_staff']
+
+
+    search_fields = ['username', 'full_name', 'user_type', 'basic_user_type']
+
+
+
+# =============================== TeacherAdminPanel =================================================================================================
+class TeacherAdminPanel(UserAdmin):
+    list_filter = ()  # ما في فلترة
+    list_display = [ 'id','username', 'full_name', 'gender', 'is_active','last_login']
+    ordering = ['id']  # الترتيب حسب id تصاعدياً
+    filter_horizontal = ('groups', 'user_permissions')
+    
+    
+    # fieldsets لصفحة التعديل
+    fieldsets = (
+        (None, {
+            'fields': ('username', 'full_name', 'gender', 'photo', 'is_active', 'groups', 'user_permissions')
+        }),
+    )
+    
+    # add_fieldsets لصفحة الإضافة
     add_fieldsets = (
         (None, {
-            'classes': ('wide',),
-            'fields': (
-                'username', 'full_name', 'gender', 'photo', 'user_type',
-                'is_active', 'is_staff', 'is_superuser',
-                'groups', 'user_permissions',
-                'password1', 'password2',
-            ),
+            'fields': ('username', 'password1', 'password2', 'full_name', 'gender')
         }),
     )
 
-
-    search_fields = ('username', 'full_name')
-    ordering = ('username',)
-
-    def get_inline_instances(self, request, obj=None):
-        """إظهار الـ inlines المناسبة حسب نوع المستخدم"""
-        if not obj:
-            return []
-        inlines = super().get_inline_instances(request, obj)
-        if obj.is_student:
-            inlines.append(StudentInline(self.model, self.admin_site))
-        elif obj.is_basic:
-            inlines.append(BasicUserInline(self.model, self.admin_site))
-        return inlines
+    def save_model(self, request, obj, form, change):
+        if not change:  # إذا كان إنشاء جديد
+            obj.created_by = request.user
+        obj.updated_by = request.user  # عند التعديل دائماً
+        obj.basic_user_type = obj.UserTypes.TEACHER  # تحديد نوع المستخدم
+        super().save_model(request, obj, form, change)
 
 
-# ========================
-# Register models
-# ========================
-User = get_user_model()
-admin.site.register(User, UserAdmin)
-admin.site.register(Student)
-admin.site.register(BasicUser)
-admin.site.register(Teacher)
-admin.site.register(ControlCommitteeMember)
-admin.site.register(Manager)
+
+
+
+    
+# =============================== ManagerAdminPanel =================================================================================================
+class ManagerAdminPanel(UserAdmin):
+    list_filter = ()  # ما في فلترة
+    list_display = [ 'id','username', 'full_name', 'gender', 'is_active','last_login']
+    ordering = ['id']  # الترتيب حسب id تصاعدياً
+    filter_horizontal = ('groups', 'user_permissions')
+    
+    
+    # fieldsets لصفحة التعديل
+    fieldsets = (
+        (None, {
+            'fields': ('username', 'full_name', 'gender', 'photo', 'is_active', 'groups', 'user_permissions')
+        }),
+    )
+    
+    # add_fieldsets لصفحة الإضافة
+    add_fieldsets = (
+        (None, {
+            'fields': ('username', 'password1', 'password2', 'full_name', 'gender')
+        }),
+    )
+
+    def save_model(self, request, obj, form, change):
+        if not change:  # إذا كان إنشاء جديد
+            if User.objects.count() == 1:
+                obj.created_by = obj
+                obj.updated_by = obj
+            else :
+                obj.created_by = request.user
+        else :
+            obj.updated_by = request.user  # عند التعديل دائماً
+        obj.basic_user_type = obj.UserTypes.MANAGER  # تحديد نوع المستخدم
+        super().save_model(request, obj, form, change)
+
+
+
+
+
+    
+# =============================== ControlCommitteeMemberAdminPanel =================================================================================================
+class ControlCommitteeMemberAdminPanel(UserAdmin):
+    list_filter = ()  # ما في فلترة
+    list_display = [ 'id','username', 'full_name', 'gender', 'is_active','last_login']
+    ordering = ['id']  # الترتيب حسب id تصاعدياً
+    filter_horizontal = ('groups', 'user_permissions')
+    
+    
+    # fieldsets لصفحة التعديل
+    fieldsets = (
+        (None, {
+            'fields': ('username', 'full_name', 'gender', 'photo', 'is_active', 'groups', 'user_permissions')
+        }),
+    )
+    
+    # add_fieldsets لصفحة الإضافة
+    add_fieldsets = (
+        (None, {
+            'fields': ('username', 'password1', 'password2', 'full_name', 'gender')
+        }),
+    )
+
+        
+    def save_model(self, request, obj, form, change):
+        if not change:  # إذا كان إنشاء جديد
+            obj.created_by = request.user
+        obj.updated_by = request.user  # عند التعديل دائماً
+        obj.basic_user_type = obj.UserTypes.COMMITTEE  # تحديد نوع المستخدم
+        super().save_model(request, obj, form, change)
+
+
+
+
+    
+    
+class StudentAdminPanel(UserAdmin):
+    list_filter = ()  # ما في فلترة
+    list_display = ['username', 'full_name', 'gender', 'is_active','last_login']
+    filter_horizontal = ('groups', 'user_permissions')
+    
+    ordering = ['id']  # الترتيب حسب id تصاعدياً
+    
+    # fieldsets لصفحة التعديل
+    fieldsets = (
+        (None, {
+            'fields': ('username', 'full_name', 'gender','photo', 'is_active', 'groups', 'user_permissions')
+        }),
+    )
+    
+    # add_fieldsets لصفحة الإضافة
+    add_fieldsets = (
+        (None, {
+            'fields': ('username', 'password1', 'password2', 'full_name','gender')
+        }),
+    )
+    
+    
+    def save_model(self, request, obj, form, change):
+        if not change:  # إذا كان إنشاء جديد
+            obj.created_by = request.user
+        obj.updated_by = request.user  # عند التعديل دائماً
+        obj.basic_user_type = obj.UserTypes.STUDENT  # تحديد نوع المستخدم
+        super().save_model(request, obj, form, change)
+    
+            
+# admin.site.register(User)
+admin.site.register(User,UserAdminPanel)
+admin.site.register(Student,StudentAdminPanel)
+admin.site.register(BasicUser,BasicUserAdminPanel)
+admin.site.register(Teacher, TeacherAdminPanel)
+admin.site.register(ControlCommitteeMember,ControlCommitteeMemberAdminPanel)
+admin.site.register(Manager,ManagerAdminPanel)
 admin.site.register(Profile)
 admin.site.register(Permission)
-
-
-# =============================================================================================================================
+admin.site.register(buffer_Student)

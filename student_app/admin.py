@@ -1,4 +1,13 @@
 from django.contrib import admin
-# from .models import Student
-# Register your models here.
-# admin.site.register(Student)
+from .models import  StudentEssayAnswer, StudentExamAttempt, StudentNumericAnswer,StudentTrueFalseQutionAnswer,StudentMultipleChoiceQuestionAnswer
+
+
+
+
+
+
+admin.site.register(StudentExamAttempt)
+admin.site.register(StudentNumericAnswer)
+admin.site.register(StudentEssayAnswer)
+admin.site.register(StudentTrueFalseQutionAnswer)
+admin.site.register(StudentMultipleChoiceQuestionAnswer)

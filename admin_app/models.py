@@ -2,12 +2,15 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from django.utils import timezone
-from django.utils.translation import gettext_lazy as _
 from authentcat_app.models import User,BasicUser
-# from .models import Semester
+from django.db import models, transaction
+from django.utils.translation import gettext_lazy as _
 
+# from .models import Semester
 User = get_user_model()
+
+
+
 
 # ==================== Department table ==========================================================
 class Department(models.Model):
@@ -27,7 +30,7 @@ class Department(models.Model):
 class Major(models.Model):
     name = models.CharField(max_length=100, unique=True, verbose_name="اسم التخصص")
     code = models.CharField(max_length=20, unique=True, verbose_name="كود التخصص")
-    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='majors')
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='majors',verbose_name="القسم")
     
     def __str__(self):
         return f"{self.name} - {self.department.name}"
@@ -46,6 +49,7 @@ class Major(models.Model):
 
 
 
+
 # ==================== Level table ==========================================================
 class Level(models.Model):
     name = models.CharField(max_length=50, unique=True, verbose_name="اسم المستوى")
@@ -55,11 +59,14 @@ class Level(models.Model):
     def __str__(self):
         return self.name
     
+    
+
+
+    
     class Meta:
         verbose_name = "مستوى"
         verbose_name_plural = "المستويات"
         ordering = ['order']
-
 
 
 
@@ -84,111 +91,51 @@ class Semester(models.Model):
         
 
 
-
-
-# ==================== Batch table ==========================================================
-class Batch(models.Model):
-    name = models.CharField(max_length=100, verbose_name="اسم الدفعة")
-    enrollment_year = models.PositiveIntegerField(verbose_name="سنة القيد", editable=False)
-    major = models.ForeignKey(Major, on_delete=models.CASCADE, related_name='التخصص')
-    order = models.PositiveSmallIntegerField(verbose_name="ترتيب الدفعة", editable=False)
+# ==================== Catalog of courses ==========================================================
+class CourseCatalog(models.Model):
     
-    def __str__(self):
-        return f" الدفعة : {self.major.department.name} - {self.major.name} - {self.order} - {self.name} - ({self.enrollment_year})"
-    
-    def save(self, *args, **kwargs):
-        # تعيين سنة القيد إذا لم يتم توفيرها
-        if not self.enrollment_year:
-            self.enrollment_year = timezone.now().year
-        
-        # تعيين الترتيب التلقائي لكل تخصص
-        if not self.pk and not self.order:
-            last_batch = Batch.objects.filter(major=self.major).order_by('-order').first()
-            self.order = (last_batch.order + 1) if last_batch else 1
-        
-        super().save(*args, **kwargs)
-    
-    def clean(self):
-        # التحقق من عدم تكرار اسم الدفعة لنفس التخصص
-        if Batch.objects.filter(name=self.name, major=self.major).exclude(pk=self.pk).exists():
-            raise ValidationError({'name': 'هذا الاسم مستخدم بالفعل لهذا التخصص'})
-        
-        # التحقق من عدم تكرار الترتيب لنفس التخصص
-        if self.order and Batch.objects.filter(major=self.major, order=self.order).exclude(pk=self.pk).exists():
-            raise ValidationError({'order': 'هذا الترتيب مستخدم بالفعل لهذا التخصص'})
-    
-    class Meta:
-        verbose_name = "دفعة"
-        verbose_name_plural = "الدفعات"
-        ordering = ['major__name', 'order']
-        constraints = [
-            models.UniqueConstraint(fields=['name', 'major'], name='unique_batch_per_major'),
-            models.UniqueConstraint(fields=['major', 'order'], name='unique_order_per_major')
-        ]
-
-
-
-
-
-
-# ==================== Course table ==========================================================
-class Course(models.Model):
     COURSE_TYPES = (
         (1, 'نظري'),
         (2, 'عملي'),
-        (3, 'نظري/عملي'),
     )
     
     COURSE_STATUS = (
         (True, 'فعال'),
         (False, 'غير فعال'),
     )
-    
     name = models.CharField(max_length=100, verbose_name="اسم المقرر")
     code = models.CharField(max_length=20, unique=True, verbose_name="كود المقرر")
+    description = models.TextField(blank=True, null=True, verbose_name="وصف المقرر")
+    course_type = models.PositiveSmallIntegerField(choices=COURSE_TYPES,verbose_name="نوع المقرر")
     is_active = models.BooleanField(choices=COURSE_STATUS, default=True)
-    course_type = models.PositiveSmallIntegerField(choices=COURSE_TYPES)
-    instructor = models.ForeignKey('authentcat_app.Teacher', on_delete=models.SET_NULL, null=True,
-                        related_name='courses', verbose_name="المعلم")
     
-    major = models.ForeignKey(Major, on_delete=models.CASCADE, related_name='courses')
-    semester = models.ForeignKey(Semester, on_delete=models.CASCADE, 
-                            related_name='courses', verbose_name="الفصل الدراسي")
-    def clean(self):
-        if Course.objects.filter(name=self.name, major=self.major).exclude(pk=self.pk).exists():
-            raise ValidationError({'name': 'هذا الاسم مستخدم بالفعل لهذا التخصص'}) 
+    
+    class Meta:
+        verbose_name = "مقرر (كتالوج)"
+        verbose_name_plural = "المقررات (كتالوج)"
+        ordering = ['name']
 
     def __str__(self):
-        return f" {self.major.department.name} - {self.major.name} - {self.semester.name} - {self.semester.level.name} - {self.name} - {self.code} - {self.instructor.basic_user.user.full_name}"
+        return f"{self.name} ({self.code})"
 
 
-    
+
+# ==================== Instance of a course being taught =================================================
+class Course(CourseCatalog):
+
+    semester = models.ForeignKey(Semester, on_delete=models.CASCADE, related_name='courses', verbose_name="الفصل الدراسي")
+    instructor = models.ForeignKey('authentcat_app.Teacher', on_delete=models.SET_NULL, null=True, related_name='courses', verbose_name="المعلم")
+    major = models.ForeignKey('admin_app.Major', on_delete=models.CASCADE, related_name='courses',verbose_name="التخصص")
+
     class Meta:
         verbose_name = "مقرر"
         verbose_name_plural = "المقررات"
-        ordering = ['major__name', 'code']
-        constraints = [
-            models.UniqueConstraint(fields=['name', 'major'], name='unique_course_name_per_major')
-        ]
+        ordering = ['semester']
 
-
-
-
-
-# ==================== class AcademicYear table ==========================================================
-class AcademicYear(models.Model):
-    name = models.CharField(max_length=20, unique=True)  
-    start_date = models.DateField()
-    end_date = models.DateField()
-    is_active = models.BooleanField(default=False)  # لتحديد السنة الحالية
-
-    class Meta:
-        verbose_name = "السنة الدراسية"
-        verbose_name_plural = "السنوات الدراسية"
-        ordering = ["-start_date"]
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.major})"
+
 
 
 

@@ -1,0 +1,70 @@
+{% extends "admin/change_list.html" %}
+
+{% block result_list %}
+<div class="grouped-exam-container">
+  {% if grouped_exams %}
+    {% for g in grouped_exams %}
+      <div class="exam-group">
+        <div class="exam-header">
+          <button class="exam-toggle" type="button"
+                  aria-expanded="false"
+                  aria-controls="exam-{{ g.exam.id }}"
+                  data-target="exam-{{ g.exam.id }}"
+                  title="توسيع/طي">
+            <span class="toggle-symbol" aria-hidden="true">+</span>
+          </button>
+
+          <div class="exam-info">
+            <div class="exam-title">
+              {{ g.exam.name|default:"بدون اسم" }} — {{ g.exam.course.name }}
+            </div>
+            <div class="exam-meta">
+              <span>النوع: {{ g.exam.get_exam_type_display }}</span>
+              <span>الصنف: {{ g.exam.get_exam_category_display }}</span>
+              <span>الدرجة: {{ g.exam.total_marks }}</span>
+              <span>عدد الأسئلة: {{ g.questions|length }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="exam-{{ g.exam.id }}" class="exam-questions" hidden>
+          <table class="questions-table">
+            <thead>
+              <tr>
+                <th style="width:40px">#</th>
+                <th>نص السؤال</th>
+                <th style="width:80px">الدرجة</th>
+                <th style="width:140px">النوع</th>
+                <th style="width:200px">أنشئ بواسطة</th>
+                <th style="width:160px">تاريخ الإنشاء</th>
+                <th style="width:110px">إجراءات</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for q in g.questions %}
+              <tr>
+                <td>{{ forloop.counter }}</td>
+                <td title="{{ q.text }}">{{ q.text|truncatechars:90 }}</td>
+                <td>{{ q.points }}</td>
+                <td>{{ q.get_question_type_display }}</td>
+                <td>{{ q.created_by }}</td>
+                <td>{{ q.created_at|date:"Y-m-d H:i" }}</td>
+                <td>
+                   <a href="{% url 'admin:taecher_app_question_change' q.pk %}" class="button btn btn-sm btn-outline-primary">
+                    عرض
+                  </a>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="7">لا توجد أسئلة.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>لا توجد نتائج.</p>
+  {% endif %}
+</div>
+{% endblock %}
