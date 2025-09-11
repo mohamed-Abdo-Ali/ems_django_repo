@@ -19,6 +19,10 @@ from django.contrib import admin
 from django.urls import path
 from django.urls import path, include
 
+from django.conf import settings
+from django.conf.urls.static import static
+
+
 urlpatterns = [
     # أي طلب على /admin/login/ يروح لـ /my-login/
     path("admin/login/", RedirectView.as_view(url="/my-login/", permanent=False)),
@@ -37,3 +41,5 @@ urlpatterns = [
     # path('reports/', include('conttroll_app.urls_reports', namespace='reports')),
 ]
 
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,5 +1,7 @@
 from django.core.management.base import BaseCommand
 import pandas as pd
+
+
 from conttroll_app.models import student_report_from_uivercity, Acdimaic_and_term_from_uivercity
 
 

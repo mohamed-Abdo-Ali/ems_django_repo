@@ -288,6 +288,8 @@ JAZZMIN_SETTINGS = {
     "order_with_respect_to": [
         # admin_app
         "admin_app",
+        "admin_app.University",
+        "admin_app.College",
         "admin_app.Department",
         "admin_app.AcademicYear",
         "admin_app.Major",

@@ -5,9 +5,108 @@ from django.utils import timezone
 from authentcat_app.models import User,BasicUser
 from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
+from django.core.validators import RegexValidator, EmailValidator
+from django.db.models import Q
 
 # from .models import Semester
 User = get_user_model()
+
+
+
+
+# ==================== University table ==========================================================
+class University(models.Model):
+    name = models.CharField(
+        "اسم الجامعة",
+        max_length=255,
+        unique=True,            # لا تتكرر نفس الجامعة
+        blank=False,
+        null=False
+    )
+    address = models.TextField("عنوان الجامعة", blank=True)
+    email = models.EmailField(
+        "البريد الإلكتروني",
+        unique=True,            # لا يتكرر نفس البريد
+        validators=[EmailValidator(message="صيغة البريد الإلكتروني غير صحيحة")]
+    )
+    phone = models.CharField(
+        "رقم الهاتف",
+        max_length=20,
+        blank=True,
+        validators=[
+            RegexValidator(
+                regex=r'^\+?\d{7,15}$',
+                message="رقم الهاتف يجب أن يكون من 7 إلى 15 رقم ويمكن أن يبدأ بـ +"
+            )
+        ]
+    )
+    logo = models.ImageField(
+        "شعار الجامعة",
+        upload_to="university_logos/",
+        blank=True,
+        null=True
+    )
+
+    def clean(self):
+        # تحقق إضافي: الاسم لا يكون فراغ فقط
+        if not self.name.strip():
+            raise ValidationError({"name": "اسم الجامعة لا يمكن أن يكون فارغاً."})
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "جامعة"
+        verbose_name_plural = "الجامعات"
+        ordering = ['name']
+        constraints = [
+            models.CheckConstraint(
+                check=~Q(name=""),   # الاسم لا يكون فارغ نصياً
+                name="university_name_not_empty"
+            )
+        ]
+
+
+
+
+# ==================== College table ==========================================================
+class College(models.Model):
+    university = models.ForeignKey(
+        University,
+        on_delete=models.CASCADE,
+        related_name="colleges",
+        verbose_name="الجامعة"
+    )
+    name = models.CharField(
+        "اسم الكلية",
+        max_length=255,
+        blank=False,
+        null=False
+    )
+
+    def clean(self):
+        # تحقق إضافي: الاسم لا يكون فراغ فقط
+        if not self.name.strip():
+            raise ValidationError({"name": "اسم الكلية لا يمكن أن يكون فارغاً."})
+
+    def __str__(self):
+        return f"{self.name} - {self.university.name}"
+
+    class Meta:
+        verbose_name = "كلية"
+        verbose_name_plural = "الكليات"
+        ordering = ['name']
+        constraints = [
+            # لا تتكرر نفس الكلية داخل نفس الجامعة
+            models.UniqueConstraint(
+                fields=['university', 'name'],
+                name="unique_college_per_university"
+            ),
+            models.CheckConstraint(
+                check=~Q(name=""),
+                name="college_name_not_empty"
+            )
+        ]
 
 
 
@@ -16,6 +115,7 @@ User = get_user_model()
 class Department(models.Model):
     name = models.CharField(max_length=100, unique=True, verbose_name="اسم القسم")
     code = models.CharField(max_length=20, unique=True, verbose_name="كود القسم")
+    college = models.ForeignKey(College, on_delete=models.CASCADE, related_name="Dept_colleges", verbose_name="الكلية")
     
     def __str__(self):
         return f"{self.name} ({self.code})"

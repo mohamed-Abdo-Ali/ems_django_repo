@@ -94,6 +94,7 @@ def insert_unviercityNumber(request):
                 request.session['univercity_number'] = univercity_number
 
                 messages.success(request, f"مرحباً {student.name} - تم تجهيز محاولتك للاختبار")
+                
                 return redirect('student_app:instructions')
             
 

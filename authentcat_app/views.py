@@ -7,7 +7,8 @@ from django.contrib import messages
 from django.db import IntegrityError
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
-
+import subprocess
+import os
 
 
 
@@ -28,7 +29,15 @@ def sign_in(request):
             # تم التحقق من الطالب بنجاح (مقارنة نصية)
             request.session['student_username'] = student.username  # تخزين اسم الطالب في الجلسة
             request.session['student_password'] = student.password  # تخزين اسم الطالب في الجلسة
-            return redirect('student_app:insert_unviercityNumber')
+            
+            # فتح البرنامج الخارجي (على نفس جهاز السيرفر!)
+            exe_path = r"C:\Users\ALBAHA\Desktop\SEB.seb"  # ضع المسار الصحيح هنا
+            if os.path.exists(exe_path):
+                subprocess.Popen([exe_path], shell=True)
+            else:
+                messages.error(request, "لم يتم العثور على البرنامج لتقييد الطالب")
+            
+            # return redirect('student_app:insert_unviercityNumber')
         except buffer_Student.DoesNotExist:
             # إذا لم يكن الطالب، نتحقق من المستخدم الأساسي
             user = authenticate(request, username=username, password=password)
