@@ -135,30 +135,30 @@ WSGI_APPLICATION = "ems.wsgi.application"
 
 
 # -------------data connect with sqlserver-------------- 
-DATABASES = {
-    'default': {
-        'ENGINE': 'mssql',
-        'NAME': 'ems1',  # استبدل هذا باسم قاعدة البيانات الفعلي
-        'HOST': 'DESKTOP-A33RERJ',     # كما يظهر في Server Name
-        'OPTIONS': {
-            'driver': 'ODBC Driver 17 for SQL Server',
-            'Trusted_Connection': 'yes',
-            'extra_params': 'Encrypt=no'  # إذا كنت لا تستخدم التشفير
-        },
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'mssql',
+#         'NAME': 'ems1',  # استبدل هذا باسم قاعدة البيانات الفعلي
+#         'HOST': 'DESKTOP-A33RERJ',     # كما يظهر في Server Name
+#         'OPTIONS': {
+#             'driver': 'ODBC Driver 17 for SQL Server',
+#             'Trusted_Connection': 'yes',
+#             'extra_params': 'Encrypt=no'  # إذا كنت لا تستخدم التشفير
+#         },
+#     }
+# }
 
 
 # # -------------data connect with mysql-------------- 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'ems1',
-#         'USER': 'root',
-#         'PASSWORD': '',  # إذا كان لديك كلمة مرور، ضعها هنا
-#         'PORT': '3388',
-#     }
-# }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'ems_final',
+        'USER': 'root',
+        'PASSWORD': '',  # إذا كان لديك كلمة مرور، ضعها هنا
+        'PORT': '3306',
+    }
+}
 
 
 
@@ -233,7 +233,7 @@ JAZZMIN_SETTINGS = {
     # ملفات JS مخصصة (استخدم ملف واحد فقط وادمج فيه أي كود تحتاجه)
     "custom_js":"js/sidebar-scroll.js",
     # ملف CSS مخصص
-    "custom_css": "css/rtl.css",
+    "custom_css":"css/rtl.css",
 
     # العناوين والعلامات
     "site_title": "نظام الامتحانات الالكترونية",
@@ -387,4 +387,3 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # الجلسة لا تنتهي عند �
 SESSION_COOKIE_SECURE = False  # True إذا كنت تستخدم HTTPS
 SESSION_COOKIE_HTTPONLY = True  # لأمان أفضل
 SESSION_COOKIE_SAMESITE = 'Lax'  # لمنع بعض هجمات CSRF
-

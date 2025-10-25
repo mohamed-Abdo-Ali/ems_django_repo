@@ -1,110 +1,170 @@
-body {
-    direction: rtl !important;
-    text-align: right !important;
+/* ====================================================
+   🖥️ إعداد الصفحة الأساسية
+   ==================================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-/* القائمة الجانبية */
-.main-sidebar {
-    right: 0 !important;
-    left: auto !important;
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden !important; /* منع السكرول العام */
+    font-family: "Cairo", sans-serif;
+    background-color: #f4f6f9;
+    direction: rtl; /* دعم اللغة العربية */
 }
 
-/* المحتوى */
-.content-wrapper {
-    margin-right: 250px !important; /* مساحة القائمة */
-    margin-left: 0 !important;
-}
-
-/* الأزرار داخل النافبار */
-.navbar-nav.ms-auto, .navbar-nav.ml-auto {
-    margin-left: 0 !important;
-    margin-right: auto !important;
-}
-
-
-.main-footer {
-    text-align: center !important;
-}
-
-
-
-.main-header {
-    position: relative !important; /* بدل fixed */
-}
-
-.main-footer {
-    position: relative !important; /* بدل fixed */
-}
-
-.content-wrapper {
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
-    min-height: calc(100vh - 120px) !important; /* يحجز مكان للهيدر والفوتر */
-}
-
-
-
-
-
-/* تحويل الاتجاه العام */
-body, .content-wrapper, .main-footer, .main-header, .sidebar {
-    direction: rtl;
-    text-align: right;
-}
-
-/* جعل القائمة الجانبية تظهر من اليمين */
-.main-sidebar {
-    right: 0;
-    left: auto;
-}
-
-/* تعديل مكان المحتوى */
-.content-wrapper {
-    margin-right: 250px;
-    margin-left: 0;
-}
-
-/* تنسيق النصوص */
-.navbar-nav.ml-auto {
-    margin-right: auto !important;
-    margin-left: 0 !important;
-}
-
-/* إزالة الـ boxed layout وجعل الصفحة 100% */
-.wrapper {
-    max-width: 100% !important;
-    width: 100% !important;
-}
-
-/* جعل المحتوى يمتد لكامل الطول */
-html, body, .wrapper, .content-wrapper {
-    height: 100% !important;
-    min-height: 100% !important;
-}
-
-/* الهيدر يثبت في الأعلى */
+/* ====================================================
+   🎨 الشريط العلوي ثابت
+   ==================================================== */
 .main-header {
     position: fixed;
     top: 0;
-    left: 0;
     right: 0;
+    left: 0;
     width: 100%;
-    z-index: 1030;
+    height: 50px;
+    background-color: #3c8dbc !important;
+    color: #fff;
+    z-index: 1003;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
-/* الفوتر في الأسفل */
+/* ====================================================
+   🎨 الشريط السفلي ثابت
+   ==================================================== */
 .main-footer {
     position: fixed;
     bottom: 0;
-    left: 0;
     right: 0;
+    left: 0;
     width: 100%;
+    height: 40px;
+    background-color: #3c8dbc !important;
+    color: #fff;
+    z-index: 1003;
+    text-align: center;
+    line-height: 40px;
+    font-size: 14px;
+    box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
 }
 
-/* ضبط مكان المحتوى بين الهيدر والفوتر */
-.content-wrapper {
-    margin-top: 60px;   /* ارتفاع الهيدر */
-    margin-bottom: 40px; /* ارتفاع الفوتر */
+/* ====================================================
+   🎨 الشريط الجانبي (Sidebar)
+   ==================================================== */
+.main-sidebar {
+    position: fixed !important;
+    top: 50px;              /* أسفل الهيدر */
+    bottom: 40px;           /* فوق الفوتر */
+    right: 0;
+    width: 260px;
+    height: calc(100% - 90px);
+    background: linear-gradient(180deg, #1e272e 0%, #2f3640 100%);
+    color: #f5f6fa;
     overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 1002;
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
+    border-left: 2px solid #3c8dbc;
+    transition: all 0.3s ease;
 }
 
+/* شريط التمرير داخل القائمة الجانبية */
+.main-sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+.main-sidebar::-webkit-scrollbar-thumb {
+    background-color: #3c8dbc;
+    border-radius: 3px;
+}
+
+/* ====================================================
+   🧩 عناصر القائمة الجانبية
+   ==================================================== */
+.nav-sidebar .nav-item > .nav-link {
+    color: #dcdde1;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.nav-sidebar .nav-icon {
+    color: #00a8ff !important;
+    font-size: 16px;
+    width: 22px;
+    text-align: center;
+}
+
+.nav-sidebar .nav-item > .nav-link:hover {
+    background-color: #3c8dbc;
+    color: #fff;
+    transform: translateX(-3px);
+}
+
+.nav-sidebar .nav-item > .nav-link.active {
+    background-color: #00a8ff !important;
+    color: #fff !important;
+    box-shadow: inset 3px 0 0 #fff;
+}
+
+/* ====================================================
+   📄 المحتوى الرئيسي بين الهيدر والفوتر
+   ==================================================== */
+.content-wrapper {
+    position: fixed;
+    top: 50px; /* أسفل الهيدر */
+    bottom: 40px; /* فوق الفوتر */
+    right: 260px; /* بعد السايدبار */
+    left: 0;
+    width: calc(100% - 260px);
+    height: calc(100% - 90px);
+    background-color: #f4f6f9;
+    padding: 15px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* شريط التمرير داخل المحتوى */
+.content-wrapper::-webkit-scrollbar {
+    width: 8px;
+}
+.content-wrapper::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 4px;
+}
+
+/* ====================================================
+   📱 تجاوب مع الشاشات الصغيرة
+   ==================================================== */
+@media (max-width: 992px) {
+    .main-sidebar {
+        width: 220px;
+    }
+    .content-wrapper {
+        right: 220px;
+        width: calc(100% - 220px);
+    }
+}
+
+@media (max-width: 768px) {
+    .main-sidebar {
+        right: -260px;
+    }
+    .main-sidebar.open {
+        right: 0;
+    }
+    .content-wrapper {
+        right: 0 !important;
+        width: 100% !important;
+    }
+}
