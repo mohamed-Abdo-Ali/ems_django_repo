@@ -3,7 +3,193 @@ from django.contrib import admin
 from .models import  Acdimaic_and_term_from_uivercity, ExamSchedule, ExamHall, student_courses_grads, student_report_from_uivercity
 from django.contrib import admin
 from django.utils.html import format_html
-from authentcat_app.admin import ReadOnlyViewAdminMixin 
+from authentcat_app.admin import ReadOnlyViewAdminMixin
+
+from django import forms
+
+from django.contrib import admin, messages
+from django.shortcuts import redirect
+from django.urls import path, reverse
+from django.utils.safestring import mark_safe
+
+from .models import student_report_from_uivercity
+from .services.import_students import import_students_from_excel
+from .services.buffer_users import create_buffer_users_for_students  # جديد
+
+@admin.register(student_report_from_uivercity)
+class StudentReportAdmin(admin.ModelAdmin):
+    change_list_template = "admin/conttroll_app/student_report_from_uivercity/change_list.html"
+
+    list_display = ("id", "name", "gender", "univercity_number", "major", "semester_display")
+    search_fields = ("name", "univercity_number", "major")
+
+    def get_list_filter(self, request):
+        field_names = {f.name for f in self.model._meta.get_fields()}
+        filters = ["gender"]
+        if "semester" in field_names:
+            filters.append("semester")
+        elif "semester_id" in field_names:
+            filters.append("semester_id")
+        return filters
+
+    def semester_display(self, obj):
+        if hasattr(obj, "semester") and getattr(obj, "semester") is not None:
+            return str(getattr(obj, "semester"))
+        return getattr(obj, "semester_id", "")
+    semester_display.short_description = "الفصل الدراسي"
+
+    def get_urls(self):
+        urls = super().get_urls()
+        info = (self.model._meta.app_label, self.model._meta.model_name)
+        custom = [
+            path("import-excel/", self.admin_site.admin_view(self.import_excel), name=f"{info[0]}_{info[1]}_import"),
+        ]
+        return custom + urls
+
+    def import_excel(self, request):
+        info = (self.model._meta.app_label, self.model._meta.model_name)
+        changelist_url = reverse(f"admin:{info[0]}_{info[1]}_changelist")
+
+        if request.method != "POST":
+            return redirect(changelist_url)
+
+        f = request.FILES.get("file")
+        sheet = request.POST.get("sheet") or "ورقة1"
+        header_row = request.POST.get("header_row") or "1"
+
+        if not f:
+            self.message_user(request, "لم يتم اختيار ملف.", level=messages.ERROR)
+            return redirect(changelist_url)
+
+        try:
+            header_row = int(header_row)
+        except ValueError:
+            header_row = 1
+
+        try:
+            # 1) استيراد الطلاب
+            result = import_students_from_excel(f, sheet_name=sheet, header_row=header_row)
+            self.message_user(
+                request,
+                f"✅ تم إدخال {result['students_created']} طالب، وإنشاء {result['terms_created']} فصل/سنة. (الصفوف المقروءة: {result['rows']})",
+                level=messages.SUCCESS,
+            )
+
+            # 2) إنشاء المستخدمين العشوائيين للطلاب الذين أُضيفوا الآن
+            created_ids = result.get("created_ids") or []
+            if created_ids:
+                file_path, public_url, created_count = create_buffer_users_for_students(created_ids)
+                if public_url:
+                    self.message_user(
+                        request,
+                        mark_safe(f"👤 تم إنشاء {created_count} مستخدم عشوائي. تنزيل الملف: <a href='{public_url}' target='_blank'>تحميل CSV</a>"),
+                        level=messages.SUCCESS,
+                    )
+                else:
+                    self.message_user(
+                        request,
+                        f"👤 تم إنشاء {created_count} مستخدم. حُفظ CSV في: {file_path}",
+                        level=messages.INFO,
+                    )
+            else:
+                self.message_user(request, "لا يوجد طلاب جدد لإنشاء مستخدمين لهم.", level=messages.WARNING)
+
+        except Exception as e:
+            self.message_user(request, f"حدث خطأ أثناء الاستيراد: {e}", level=messages.ERROR)
+
+        return redirect(changelist_url)
+
+
+
+
+
+# conttroll_app/admin.py
+# from django.contrib import admin, messages
+# from django.shortcuts import redirect
+# from django.urls import path, reverse
+
+# from .models import student_report_from_uivercity
+# from .services.import_students import import_students_from_excel
+
+# @admin.register(student_report_from_uivercity)
+# class StudentReportAdmin(admin.ModelAdmin):
+#     change_list_template = "admin/conttroll_app/student_report_from_uivercity/change_list.html"
+
+#     # استبدل 'semester' بـ 'semester_display'
+#     list_display = ("id", "name", "gender", "univercity_number", "major", "semester_display")
+#     search_fields = ("name", "univercity_number", "major")
+
+#     # فلترة مرنة حسب الحقول الموجودة فعلاً
+#     def get_list_filter(self, request):
+#         field_names = {f.name for f in self.model._meta.get_fields()}
+#         filters = ["gender"]
+#         if "semester" in field_names:
+#             filters.append("semester")       # FK موجودة فعليًا
+#         elif "semester_id" in field_names:
+#             filters.append("semester_id")    # IntegerField موجود فعليًا
+#         return filters
+
+#     # عرض مرن لقيمة الفصل
+#     def semester_display(self, obj):
+#         # لو عندك FK اسمها semester
+#         if hasattr(obj, "semester") and getattr(obj, "semester") is not None:
+#             return str(getattr(obj, "semester"))
+#         # fallback: لو عندك حقل رقمي اسمه semester_id
+#         return getattr(obj, "semester_id", "")
+#     semester_display.short_description = "الفصل الدراسي"
+
+#     def get_urls(self):
+#         urls = super().get_urls()
+#         info = (self.model._meta.app_label, self.model._meta.model_name)
+#         custom = [
+#             path(
+#                 "import-excel/",
+#                 self.admin_site.admin_view(self.import_excel),
+#                 name=f"{info[0]}_{info[1]}_import",
+#             ),
+#         ]
+#         return custom + urls
+
+#     def import_excel(self, request):
+#         info = (self.model._meta.app_label, self.model._meta.model_name)
+#         changelist_url = reverse(f"admin:{info[0]}_{info[1]}_changelist")
+
+#         if request.method != "POST":
+#             return redirect(changelist_url)
+
+#         f = request.FILES.get("file")
+#         sheet = request.POST.get("sheet") or "ورقة1"
+#         header_row = request.POST.get("header_row") or "1"
+
+#         if not f:
+#             self.message_user(request, "لم يتم اختيار ملف.", level=messages.ERROR)
+#             return redirect(changelist_url)
+
+#         try:
+#             header_row = int(header_row)
+#         except ValueError:
+#             header_row = 1
+
+#         try:
+#             result = import_students_from_excel(f, sheet_name=sheet, header_row=header_row)
+#             self.message_user(
+#                 request,
+#                 f"✅ تم إدخال {result['students_created']} طالب، وإنشاء {result['terms_created']} فصل/سنة. (الصفوف المقروءة: {result['rows']})",
+#                 level=messages.SUCCESS,
+#             )
+#         except Exception as e:
+#             self.message_user(request, f"حدث خطأ أثناء الاستيراد: {e}", level=messages.ERROR)
+
+#         return redirect(changelist_url)
+
+
+
+
+
+class ExcelUploadForm(forms.Form):
+    file = forms.FileField(label="ملف الإكسل (.xlsx)")
+    sheet = forms.CharField(label="اسم الشيت", initial="ورقة1", required=False)
+    header_row = forms.IntegerField(label="رقم صف العناوين (Header)", initial=1, min_value=0) 
 
 class ExamResultAdmin(admin.ModelAdmin):
     list_display = ("student", "exam", "marks_obtained", "total_marks",  "attempt_number", "locked")
@@ -86,6 +272,7 @@ class student_courses_grads_admin(admin.ModelAdmin):
 # سجّل بقية الموديلات لديك إن لم تكن مسجلة
 admin.site.register(ExamHall)
 admin.site.register(ExamSchedule)
-admin.site.register(student_report_from_uivercity,student_report_from_uivercity_admin)
+# admin.site.register(student_report_from_uivercity,student_report_from_uivercity_admin)
 admin.site.register(Acdimaic_and_term_from_uivercity,Acdimaic_and_term_from_uivercity_admin)
 admin.site.register(student_courses_grads,student_courses_grads_admin)
+# admin.site.register(StudentReportAdmin)
