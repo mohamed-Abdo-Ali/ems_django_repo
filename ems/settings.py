@@ -153,7 +153,7 @@ WSGI_APPLICATION = "ems.wsgi.application"
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'ems_final',
+        'NAME': 'ems',
         'USER': 'root',
         'PASSWORD': '',  # إذا كان لديك كلمة مرور، ضعها هنا
         'PORT': '3306',
@@ -316,6 +316,7 @@ JAZZMIN_SETTINGS = {
         "conttroll_app.ExamStatusLog",
         "conttroll_app.CourseEnrollment",
         "conttroll_app.Grade",
+        # "conttroll_app.student_report_from_uivercity",
 
         # taecher_app
         "taecher_app",
