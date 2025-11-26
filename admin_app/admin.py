@@ -108,8 +108,10 @@ class Admin_panel_Level(admin.ModelAdmin) :
 
 
 # ==================== Admin_panel_CourseStructure table =========================================================
-class Admin_panel_CourseStructure(admin.ModelAdmin):
-    list_display = ['final_exam_max','midterm_exam_max','class_work_max','structure']
+
+
+# class Admin_panel_CourseStructure(admin.ModelAdmin):
+#     list_display = ['final_exam_max','midterm_exam_max','class_work_max','structure']
 
 
 
@@ -128,7 +130,7 @@ admin.site.register(Major, Admin_panel_Major)
 admin.site.register(Level, Admin_panel_Level)
 admin.site.register(Semester)
 admin.site.register(Course, Admin_panel_Course)
-admin.site.register(CourseStructure, Admin_panel_CourseStructure)
+# admin.site.register(CourseStructure, Admin_panel_CourseStructure)
 
 
 

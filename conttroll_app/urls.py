@@ -7,7 +7,9 @@ app_name = 'conttroll_app'  # مهم لتجنب التعارض بين التطب
 urlpatterns = [
     path('', views.home, name='home'),
     path('exam-schedule/',views.exam_schedule_view, name='exam-schedule'),
-]
+    path("tools/import-students/", views.import_students_page, name="import_students_page"),
+     
+     ]
 
 
 
