@@ -34,7 +34,8 @@ urlpatterns = [
 
     path('', include('authentcat_app.urls')),
     path('admin_app/', include('admin_app.urls')),
-    path('conttroll_app/', include('conttroll_app.urls')),
+    # path('conttroll_app/', include('conttroll_app.urls')),
+    path("conttroll_app/", include(("conttroll_app.urls", "conttroll_app"), namespace="conttroll_app")),
     path('core_app/', include('core_app.urls')),
     path('student_app/', include('student_app.urls')),
     path('taecher_app/', include('taecher_app.urls')),

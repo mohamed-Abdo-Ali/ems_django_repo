@@ -31,7 +31,7 @@ def sign_in(request):
             request.session['student_password'] = student.password  # تخزين اسم الطالب في الجلسة
             
             # فتح البرنامج الخارجي (على نفس جهاز السيرفر!)
-            exe_path = r"C:\Users\ALBAHA\Desktop\SEB.seb"  # ضع المسار الصحيح هنا
+            exe_path = r"C:\Users\nazeh\Desktop\SebClientSettings.seb"  # ضع المسار الصحيح هنا
             if os.path.exists(exe_path):
                 subprocess.Popen([exe_path], shell=True)
             else:

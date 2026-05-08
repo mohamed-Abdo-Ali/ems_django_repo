@@ -1,0 +1,41 @@
+{% extends "admin/change_list.html" %}
+{% load admin_urls %}
+
+{% block object-tools-items %}
+  {{ block.super }}
+  <li>
+    <form id="importForm"
+          method="post"
+          action="{% url opts|admin_urlname:'import' %}"
+          enctype="multipart/form-data"
+          style="display:inline;">
+      {% csrf_token %}
+      <input type="file" id="fileInput" name="file" accept=".xlsx,.xls" style="display:none;">
+      <input type="hidden" name="sheet" value="ورقة1">
+      <input type="hidden" name="header_row" value="1">
+      <button type="button" id="pickFileBtn" class="button btn btn-success">
+        استيراد من إكسل
+      </button>
+    </form>
+  </li>
+{% endblock %}
+
+{% block extrahead %}{{ block.super }}
+<script>
+(function(){
+  document.addEventListener('DOMContentLoaded', function(){
+    var pickBtn = document.getElementById('pickFileBtn');
+    var fileInput = document.getElementById('fileInput');
+    var form = document.getElementById('importForm');
+    if (pickBtn && fileInput && form) {
+      pickBtn.addEventListener('click', function(){ fileInput.click(); });
+      fileInput.addEventListener('change', function(){
+        if (fileInput.files.length) {
+          form.submit();
+        }
+      });
+    }
+  });
+})();
+</script>
+{% endblock %}

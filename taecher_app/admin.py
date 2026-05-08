@@ -9,6 +9,36 @@ from django.core.exceptions import PermissionDenied
 
 
 
+
+
+from django.contrib import admin
+from admin_app.models import  Course
+from .models import CourseStructure
+# ==================== Admin_panel_CourseStructure table =========================================================
+
+class Admin_panel_CourseStructure(admin.ModelAdmin):
+    list_display = ['final_exam_max', 'midterm_exam_max', 'class_work_max', 'structure']
+
+    # 🔹 عرض فقط الهياكل الخاصة بالمعلم في صفحة العرض
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        return qs.filter(structure__instructor=request.user)
+
+    # 🔹 تقييد قائمة المقررات في صفحة الإضافة لتشمل فقط مقررات المعلم
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "structure" and not request.user.is_superuser:
+            kwargs["queryset"] = Course.objects.filter(instructor=request.user)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+admin.site.register(CourseStructure, Admin_panel_CourseStructure)
+
+
+
+
+
+
 # =============================== ReadOnlyViewAdminMixin =================================================================================================
 class ReadOnlyViewAdminMixin:
     # منع الإضافة والتعديل
@@ -554,24 +584,81 @@ class AnswerAdminPanel(ReadOnlyViewAdminMixin, admin.ModelAdmin):
 
 
 # =============================== ExamAdminPanel ===========================================
+from django.contrib import admin
+from .models import Exam, Teacher
+
 class ExamAdminPanel(admin.ModelAdmin):
     list_display = ('name', 'course', 'exam_type', 'exam_category', 'total_marks', 'show_results', 'created_by', 'created_at')
-    list_filter = ()
-    search_fields = ('name', 'course__name', 'created_by__user__username')
+    search_fields = ('name', 'course__name', 'created_by__username')
     ordering = ('-created_at',)
     fieldsets = (
         (None, {
             'fields': ('name', 'description', 'course', 'exam_type', 'exam_category', 'duration', 'show_results', 'file')
         }),
     )
-    # readonly_fields = ['total_marks']
-
 
     def save_model(self, request, obj, form, change):
         if not obj.created_by:
             teacher = Teacher.objects.filter(pk=request.user.pk).first()
-            obj.created_by = teacher # إذا كان لديك ربط المستخدم بالمعلم
+            if teacher:
+                obj.created_by = teacher
         super().save_model(request, obj, form, change)
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        teacher = Teacher.objects.filter(pk=request.user.pk).first()
+        if teacher:
+            return qs.filter(created_by=teacher)
+        return qs.none()
+
+    def has_change_permission(self, request, obj=None):
+        if obj is None or request.user.is_superuser:
+            return True
+        return obj.created_by and obj.created_by.pk == request.user.pk
+
+    def has_delete_permission(self, request, obj=None):
+        if obj is None or request.user.is_superuser:
+            return True
+        return obj.created_by and obj.created_by.pk == request.user.pk
+
+    def has_view_permission(self, request, obj=None):
+        if obj is None or request.user.is_superuser:
+            return True
+        return obj.created_by and obj.created_by.pk == request.user.pk
+
+# إلغاء أي تسجيل قديم قبل التسجيل الجديد
+try:
+    admin.site.unregister(Exam)
+except admin.sites.NotRegistered:
+    pass
+
+admin.site.register(Exam, ExamAdminPanel)
+
+
+
+
+
+
+# class ExamAdminPanel(admin.ModelAdmin):
+#     list_display = ('name', 'course', 'exam_type', 'exam_category', 'total_marks', 'show_results', 'created_by', 'created_at')
+#     list_filter = ()
+#     search_fields = ('name', 'course__name', 'created_by__user__username')
+#     ordering = ('-created_at',)
+#     fieldsets = (
+#         (None, {
+#             'fields': ('name', 'description', 'course', 'exam_type', 'exam_category', 'duration', 'show_results', 'file')
+#         }),
+#     )
+#     # readonly_fields = ['total_marks']
+
+
+#     def save_model(self, request, obj, form, change):
+#         if not obj.created_by:
+#             teacher = Teacher.objects.filter(pk=request.user.pk).first()
+#             obj.created_by = teacher # إذا كان لديك ربط المستخدم بالمعلم
+#         super().save_model(request, obj, form, change)
 
 
 
@@ -584,7 +671,7 @@ class StudentExamAttendance_admin(admin.ModelAdmin):
 
 
 # Register your models here.
-admin.site.register(Exam , ExamAdminPanel)
+# admin.site.register(Exam , ExamAdminPanel)
 admin.site.register(StudentExamAttendance,StudentExamAttendance_admin)
 admin.site.register(ExamStatusLog)
 admin.site.register(Question, QuestionAdminPanel)
